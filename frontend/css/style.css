@@ -19,7 +19,7 @@ body{
 form{
     margin: 0 2rem;
 }
-form-title{
+.form-title{
     font-size: 1.5rem;
     font-weight: bold;
     text-align: center;
