@@ -1,32 +1,108 @@
-*{
-    margin:0;
-    padding:0;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@600&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+    font-family: "Roboto", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-style: normal;
+    font-variation-settings:
+        "wdth" 100;
 }
-body{
+
+.wrapper{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background:green;
+}
+
+.nav{
+   position: fixed;
+   top:0;
+   display: flex;
+   justify-content: space-around;
+   width: 100%;
+   height: 100px;
+   line-height: 100px;
+   background: linear-gradient(green) transparent;
+   z-index: 100;
+}
+.nav-logo p{
+    color:white;
+    font-size: 25px;
+    font-weight: 600;
+}
+
+.navbar ul{
+    display: flex;
+}
+.navbar ul li{
+    list-style-type: none;
+}
+.nav-links{
+    text-decoration: none;
+    font-weight: 500;
+    color:#fff;
+    padding-bottom:  15px;
+}
+.nav-links li{
+    margin: 0 20px;
+}
+
+.link:hover , .active{
+    border-bottom: 2px solid #fff;
+}
+.auth-buttons .btn{
+    width: 130px;
+    height:40px;
+    font-weight: 500;
+    background: gray;
+    border:none;
+    border-radius: 30px;
+    cursor:pointer;
+    transition: .3s ease;
+}
+#navSignUpButton{
+    margin-left: 15px;
+}
+
+#navSignInButton{
+    margin-left: 15px;
+}
+
+body {
+    background-attachment: fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
     background-color: #c9d6ff;
     background: linear-gradient(to right, #e2e2e2, #c9d6ff);
 }
-.container{
+
+.container {
     background: #fff;
     width: 450px;
     padding: 1.5rem;
     margin: 50px auto;
     border-radius: 10px;
-    box-shadow: 0 20px 35px rgba(0,0,1,0.9);
+    box-shadow: 0 20px 35px rgba(0, 0, 1, 0.9);
 }
-form{
+
+form {
     margin: 0 2rem;
 }
-.form-title{
+
+.form-title {
     font-size: 1.5rem;
     font-weight: bold;
     text-align: center;
     padding: 1.3rem;
     margin-bottom: 0.4rem;
 }
-input{
+
+input {
     color: inherit;
     width: 100%;
     background-color: transparent;
@@ -35,23 +111,28 @@ input{
     padding-left: 1.5rem;
     font-size: 15px;
 }
-.input-group{
+
+.input-group {
     padding: 1% 0;
     position: relative;
 }
-.input-group i{
+
+.input-group i {
     position: absolute;
     color: black;
 }
-input:focus{
+
+input:focus {
     background-color: transparent;
     outline: transparent;
     border-bottom: 2px solid hsl(327, 90%, 28%);
 }
-input::placeholder{
+
+input::placeholder {
     color: transparent;
 }
-label{
+
+label {
     color: #757575;
     position: relative;
     left: 1.2rem;
@@ -59,46 +140,55 @@ label{
     cursor: auto;
     transition: 0.3s ease all;
 }
-input:focus, input:not(:placeholder-shown){
+
+input:focus,
+input:not(:placeholder-shown) {
     top: -3rem;
     color: hsl(327, 90%, 28%);
     font-size: 15px;
 }
-.recover{
+
+.recover {
     text-align: right;
     font-size: 1rem;
     margin-bottom: 1rem;
 }
-.recover a{
+
+.recover a {
     text-decoration: none;
-    color: rgb(125,125,235);
+    color: rgb(125, 125, 235);
 }
-.recover a:hover{
+
+.recover a:hover {
     color: blue;
     text-decoration: underline;
 }
-.btn{
+
+.btn {
     font-size: 1.1rem;
     padding: 8px 0;
     border-radius: 5px;
     outline: none;
     border: none;
     width: 100%;
-    background-color: rgb(125,125,235);
+    background-color: rgb(125, 125, 235);
     color: white;
     cursor: pointer;
     transition: 0.9s;
 }
-.btn:hover{
+
+.btn:hover {
     background-color: #07001f;
 }
-.or{
+
+.or {
     font-size: 1.1rem;
     margin-top: 0.5rem;
     text-align: center;
 }
-.icons i{
-    color: rgb(125,125,235);
+
+.icons i {
+    color: rgb(125, 125, 235);
     padding: 0.8rem 1.5rem;
     border-radius: 10px;
     font-size: 1.5rem;
@@ -107,26 +197,30 @@ input:focus, input:not(:placeholder-shown){
     margin: 0 15px;
     transition: 1s;
 }
-.icons i:hover{
-    background-color: rgb(125,125,235);
+
+.icons i:hover {
+    background-color: rgb(125, 125, 235);
     font-size: 1.6rem;
-    border: 2px solid rgb(125,125,235);
+    border: 2px solid rgb(125, 125, 235);
 }
-.links{
+
+.links {
     display: flex;
     justify-content: space-around;
     padding: 0 4rem;
     margin-top: 0.9rem;
     font-weight: bold;
 }
-.button{
-    color:rgb(125,125,235);
-    border:none;
+
+.button {
+    color: rgb(125, 125, 235);
+    border: none;
     background-color: transparent;
     font-size: 1rem;
     font-weight: bold;
 }
-.button:hover{
+
+.button:hover {
     text-decoration: underline;
     color: blue;
 }

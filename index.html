@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,30 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
     <link rel="stylesheet" href="frontend/css/style.css">
 </head>
+
 <body>
+    <div class="wrapper">
+        <nav class="navbar">
+            <div class="nav-logo">
+                <p>GEGE</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#" class="link active">Home</a></li>
+                <li><a href="#" class="link ">About</a></li>
+                <li><a href="#" class="link ">Services</a></li>
+                <li><a href="#" class="link ">Contact</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <button class="btn" id="navSignInButton">Sign In</button>
+                <button class="btn" id="navSignUpButton">Sign Up</button>
+
+            </div>
+            <div class="nav-menu-btn">
+                <i class="bx bx-menu"></i>
+            </div>
+        </nav>
+    </div>
+
     <!-- Sign Up Form -->
     <div class="container" id="signup" style="display: none;">
         <h1 class="form-title">Register</h1>
@@ -32,7 +56,7 @@
                 <input type="password" name="password" id="signupPassword" placeholder="Password" required>
                 <label for="signupPassword">Password</label>
             </div>
-            <input type="submit" class="btn" value="Sign Up" name="signUp">    
+            <input type="submit" class="btn" value="Sign Up" name="signUp">
         </form>
         <p class="or">
             ------- OR -------
@@ -40,7 +64,7 @@
         <div class="icons">
             <i class="fab fa-google"></i>
             <i class="fab fa-facebook-f"></i>
-        </div> 
+        </div>
         <div class="links">
             <p>Already Have Account?</p>
             <button id="signInButton">Sign In</button>
@@ -64,7 +88,7 @@
             <p class="recover">
                 <a href="#" id="forgotPassword">Forgot Password?</a>
             </p>
-            <input type="submit" class="btn" value="Sign In" name="signIn">    
+            <input type="submit" class="btn" value="Sign In" name="signIn">
         </form>
         <p class="or">
             ------- OR -------
@@ -72,7 +96,7 @@
         <div class="icons">
             <i class="fab fa-google"></i>
             <i class="fab fa-facebook-f"></i>
-        </div> 
+        </div>
         <div class="links">
             <p>Don't Have Account Yet?</p>
             <button id="signUpButton">Sign Up</button>
@@ -81,4 +105,5 @@
 
     <script src="frontend/js/script.js"></script>
 </body>
+
 </html>
