@@ -228,8 +228,8 @@ input:-webkit-autofill + label {
 
 /* Dashboard styles */
 #dashboard {
-    margin: 50px auto;
-    max-width: 1100px;
+    margin: 0;
+    max-width: none;
 }
 
 .dashboard-hero {
@@ -245,6 +245,27 @@ input:-webkit-autofill + label {
     align-items: center;
     padding: 24px 28px;
 }
+
+.brand-logo{
+    width: 110px;
+    height: auto;
+    object-fit: contain;
+    margin-right: 24px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
+    filter: contrast(1.05) saturate(1.1);
+}
+
+/* Push user block to the right while keeping nav centered between logo and button */
+.dashboard-content { gap: 20px; }
+/* Reorder header: logo | nav (center area) | user | actions */
+.brand-logo { order: 1; }
+.dashboard-nav { order: 2; flex: 1; justify-content: center; }
+.dashboard-user { order: 3; margin-left: 0; }
+.dashboard-actions { order: 4; margin-left: 12px; }
 
 .dashboard-nav {
     display: flex;
@@ -298,4 +319,72 @@ input:-webkit-autofill + label {
 
 .dashboard-actions .btn-logout:hover {
     background: #064e3b;
+}
+
+/* Sliding side panel under header */
+.panel-area {
+    position: relative;
+}
+
+.side-panel {
+    position: relative;
+    width: 280px;
+    background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+    border-radius: 12px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    border: 1px solid #cbd5e1;
+    margin: 16px 0 0 0;
+    transform: translateX(-220px);
+    transition: transform 300ms ease;
+    padding: 16px;
+}
+
+.side-panel:hover {
+    transform: translateX(0);
+}
+
+.panel-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.panel-username {
+    color: #064e3b;
+    font-size: 18px;
+}
+
+.panel-email {
+    color: rgba(6, 78, 59, 0.5);
+    font-size: 14px;
+    transition: color 200ms ease;
+}
+
+.side-panel:hover .panel-email {
+    color: #065f46;
+}
+
+.panel-nav {
+    display: grid;
+    gap: 10px;
+}
+
+.panel-btn {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 200ms ease, transform 100ms ease;
+}
+
+.panel-btn:hover {
+    background: #d1fae5;
+}
+
+.panel-btn:active {
+    transform: scale(0.98);
 }

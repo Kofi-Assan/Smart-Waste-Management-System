@@ -73,6 +73,12 @@ signinFormElement.addEventListener('submit', function(e) {
             dashName.textContent = `Welcome, ${userData.firstName} ${userData.lastName}`;
             dashEmail.textContent = userData.email;
 
+            // Also populate the sliding side panel
+            const panelName = document.getElementById('panelName');
+            const panelEmail = document.getElementById('panelEmail');
+            if (panelName) panelName.textContent = `${userData.firstName} ${userData.lastName}`;
+            if (panelEmail) panelEmail.textContent = userData.email;
+
             document.getElementById('signIn').style.display = 'none';
             document.getElementById('signup').style.display = 'none';
             dashboard.style.display = 'block';
@@ -123,5 +129,10 @@ document.addEventListener('click', function(e){
         document.getElementById('signIn').style.display = 'block';
         // Clear sign-in inputs
         signinFormElement.reset();
+        // Clear panel info
+        const panelName = document.getElementById('panelName');
+        const panelEmail = document.getElementById('panelEmail');
+        if (panelName) panelName.textContent = 'Username';
+        if (panelEmail) panelEmail.textContent = 'email@example.com';
     }
 });
