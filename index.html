@@ -10,27 +10,7 @@
 </head>
 
 <body>
-    <div class="wrapper">
-        <nav class="navbar">
-            <div class="nav-logo">
-                <p>GEGE</p>
-            </div>
-            <ul class="nav-links">
-                <li><a href="#" class="link active">Home</a></li>
-                <li><a href="#" class="link ">About</a></li>
-                <li><a href="#" class="link ">Services</a></li>
-                <li><a href="#" class="link ">Contact</a></li>
-            </ul>
-            <div class="auth-buttons">
-                <button class="btn" id="navSignInButton">Sign In</button>
-                <button class="btn" id="navSignUpButton">Sign Up</button>
-
-            </div>
-            <div class="nav-menu-btn">
-                <i class="bx bx-menu"></i>
-            </div>
-        </nav>
-    </div>
+    
 
     <!-- Sign Up Form -->
     <div class="container" id="signup" style="display: none;">
@@ -101,6 +81,30 @@
             <p>Don't Have Account Yet?</p>
             <button id="signUpButton">Sign Up</button>
         </div>
+    </div>
+
+    <!-- Dashboard (hidden until signed in) -->
+    <div id="dashboard" style="display: none;">
+        <section class="dashboard-hero">
+            <div class="dashboard-content">
+                <div class="dashboard-user">
+                    <div class="avatar" aria-hidden="true">👤</div>
+                    <div>
+                        <h2 id="dashName">Welcome</h2>
+                        <p id="dashEmail"></p>
+                    </div>
+                </div>
+                <nav class="dashboard-nav">
+                    <a href="#" class="dash-link" id="dashHome">Home</a>
+                    <a href="#" class="dash-link" id="dashAbout">About</a>
+                    <a href="#" class="dash-link" id="dashContact">Contact</a>
+                </nav>
+                <div class="dashboard-actions">
+                    <button id="logoutBtn" class="btn btn-logout">Log Out</button>
+                </div>
+            </div>
+        </section>
+        <!-- The rest of the page is intentionally left blank per request -->
     </div>
 
     <script src="frontend/js/script.js"></script>

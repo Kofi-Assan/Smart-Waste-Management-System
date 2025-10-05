@@ -66,17 +66,21 @@ signinFormElement.addEventListener('submit', function(e) {
         const userData = JSON.parse(storedUser);
         
         if (userData.password === password) {
-            alert(`Welcome back, ${userData.firstName}!`);
-            // Here you would typically redirect to a dashboard or main app
-            // For now, we'll just show a success message
-            document.body.innerHTML = `
-                <div style="text-align: center; padding: 50px; font-family: 'Poppins', sans-serif;">
-                    <h1>Welcome to Smart Waste Management System!</h1>
-                    <p>Hello, ${userData.firstName} ${userData.lastName}</p>
-                    <p>You have successfully signed in.</p>
-                    <button onclick="location.reload()" style="padding: 10px 20px; background: rgb(125,125,235); color: white; border: none; border-radius: 5px; cursor: pointer;">Back to Login</button>
-                </div>
-            `;
+            // Show dashboard view
+            const dashboard = document.getElementById('dashboard');
+            const dashName = document.getElementById('dashName');
+            const dashEmail = document.getElementById('dashEmail');
+            dashName.textContent = `Welcome, ${userData.firstName} ${userData.lastName}`;
+            dashEmail.textContent = userData.email;
+
+            document.getElementById('signIn').style.display = 'none';
+            document.getElementById('signup').style.display = 'none';
+            dashboard.style.display = 'block';
+
+            // Set Home active by default
+            document.querySelectorAll('.dash-link').forEach(l => l.classList.remove('active'));
+            const homeLink = document.getElementById('dashHome');
+            if (homeLink) homeLink.classList.add('active');
         } else {
             alert('Invalid password. Please try again.');
         }
@@ -109,4 +113,15 @@ document.querySelectorAll('.icons i').forEach(icon => {
         const platform = this.classList.contains('fa-google') ? 'Google' : 'Facebook';
         alert(`${platform} login is not implemented in this demo.`);
     });
+});
+
+// Logout
+document.addEventListener('click', function(e){
+    if(e.target && e.target.id === 'logoutBtn'){
+        // Show sign-in form again and hide dashboard
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('signIn').style.display = 'block';
+        // Clear sign-in inputs
+        signinFormElement.reset();
+    }
 });
