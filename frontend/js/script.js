@@ -19,7 +19,7 @@ signInButton.addEventListener('click', function(){
 });
 
 // Handle Sign Up form submission
-signupFormElement.addEventListener('submit', function(e) {
+signupFormElement.addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const firstName = document.getElementById('fName').value;
@@ -29,71 +29,132 @@ signupFormElement.addEventListener('submit', function(e) {
     
     // Basic validation
     if (firstName && lastName && email && password) {
-        // Store user data in localStorage (for demo purposes)
-        const userData = {
-            firstName: firstName,
-            lastName: lastName,
-            email: email,
-            password: password // In real app, never store plain text passwords!
-        };
-        
-        localStorage.setItem('user_' + email, JSON.stringify(userData));
-        
-        alert('Registration successful! You can now sign in.');
-        
-        // Switch to sign in form
-        signInForm.style.display = 'block';
-        signUpForm.style.display = 'none';
-        
-        // Clear form
-        signupFormElement.reset();
+        try {
+            // Try to register with backend API
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    firstName,
+                    lastName,
+                    email,
+                    password
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Store token and user data
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('userData', JSON.stringify(data.user));
+                
+                alert('Registration successful! You can now sign in.');
+                
+                // Switch to sign in form
+                signInForm.style.display = 'block';
+                signUpForm.style.display = 'none';
+                
+                // Clear form
+                signupFormElement.reset();
+            } else {
+                alert(data.error || 'Registration failed');
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            // Fallback to localStorage if backend is not available
+            const userData = {
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                password: password
+            };
+            
+            localStorage.setItem('user_' + email, JSON.stringify(userData));
+            alert('Registration successful! (Using offline mode)');
+            
+            // Switch to sign in form
+            signInForm.style.display = 'block';
+            signUpForm.style.display = 'none';
+            signupFormElement.reset();
+        }
     } else {
         alert('Please fill in all fields.');
     }
 });
 
 // Handle Sign In form submission
-signinFormElement.addEventListener('submit', function(e) {
+signinFormElement.addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const email = document.getElementById('signinEmail').value;
     const password = document.getElementById('signinPassword').value;
     
-    // Check if user exists in localStorage
-    const storedUser = localStorage.getItem('user_' + email);
-    
-    if (storedUser) {
-        const userData = JSON.parse(storedUser);
+    try {
+        // Try to login with backend API
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email,
+                password
+            })
+        });
         
-        if (userData.password === password) {
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Store token and user data
+            localStorage.setItem('authToken', data.token);
+            localStorage.setItem('userData', JSON.stringify(data.user));
+            
             // Show dashboard view
-            const dashboard = document.getElementById('dashboard');
-            const dashName = document.getElementById('dashName');
-            const dashEmail = document.getElementById('dashEmail');
-            dashName.textContent = `Welcome, ${userData.firstName} ${userData.lastName}`;
-            dashEmail.textContent = userData.email;
-
-            // Also populate the sliding side panel
-            const panelName = document.getElementById('panelName');
-            const panelEmail = document.getElementById('panelEmail');
-            if (panelName) panelName.textContent = `${userData.firstName} ${userData.lastName}`;
-            if (panelEmail) panelEmail.textContent = userData.email;
-
-            document.getElementById('signIn').style.display = 'none';
-            document.getElementById('signup').style.display = 'none';
-            dashboard.style.display = 'block';
-
-            // Set Home active by default
-            document.querySelectorAll('.dash-link').forEach(l => l.classList.remove('active'));
-            const homeLink = document.getElementById('dashHome');
-            if (homeLink) homeLink.classList.add('active');
+            showDashboard(data.user);
         } else {
-            alert('Invalid password. Please try again.');
+            alert(data.error || 'Login failed');
         }
-    } else {
-        alert('No account found with this email. Please sign up first.');
+    } catch (error) {
+        console.error('Login error:', error);
+        // Fallback to localStorage if backend is not available
+        const storedUser = localStorage.getItem('user_' + email);
+        
+        if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            
+            if (userData.password === password) {
+                showDashboard(userData);
+            } else {
+                alert('Invalid password. Please try again.');
+            }
+        } else {
+            alert('No account found with this email. Please sign up first.');
+        }
     }
 });
+
+// Function to show dashboard with user data
+function showDashboard(userData) {
+    const dashboard = document.getElementById('dashboard');
+    const dashName = document.getElementById('dashName');
+    const dashEmail = document.getElementById('dashEmail');
+    
+    dashName.textContent = `Welcome, ${userData.firstName} ${userData.lastName}`;
+    dashEmail.textContent = userData.email;
+
+    // Also populate the sliding side panel
+    const panelName = document.getElementById('panelName');
+    const panelEmail = document.getElementById('panelEmail');
+    if (panelName) panelName.textContent = `${userData.firstName} ${userData.lastName}`;
+    if (panelEmail) panelEmail.textContent = userData.email;
+
+    document.getElementById('signIn').style.display = 'none';
+    document.getElementById('signup').style.display = 'none';
+    dashboard.style.display = 'block';
+}
 
 // Handle Forgot Password
 forgotPasswordLink.addEventListener('click', function(e) {
@@ -117,7 +178,7 @@ forgotPasswordLink.addEventListener('click', function(e) {
 document.querySelectorAll('.icons i').forEach(icon => {
     icon.addEventListener('click', function() {
         const platform = this.classList.contains('fa-google') ? 'Google' : 'Facebook';
-        alert(`${platform} login is not implemented in this demo.`);
+        alert(`${platform} Login is under construction.`);
     });
 });
 
@@ -134,5 +195,16 @@ document.addEventListener('click', function(e){
         const panelEmail = document.getElementById('panelEmail');
         if (panelName) panelName.textContent = 'Username';
         if (panelEmail) panelEmail.textContent = 'email@example.com';
+    }
+});
+
+// Handle side panel button clicks
+document.addEventListener('click', function(e){
+    if(e.target && e.target.classList.contains('panel-btn')){
+        const buttonText = e.target.textContent.trim();
+        if(buttonText === 'Rewards'){
+            alert('Under Construction');
+        }
+        // Dashboard and Bins buttons can be handled here later
     }
 });
