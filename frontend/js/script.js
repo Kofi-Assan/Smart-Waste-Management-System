@@ -1,4 +1,6 @@
 // Get DOM elements
+// Note: Point this to your running backend. Defaults to localhost:3000.
+const API_BASE = 'http://localhost:3000';
 const signUpButton = document.getElementById('signUpButton');
 const signInButton = document.getElementById('signInButton');
 const signInForm = document.getElementById('signIn');
@@ -31,7 +33,7 @@ signupFormElement.addEventListener('submit', async function(e) {
     if (firstName && lastName && email && password) {
         try {
             // Try to register with backend API
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch(`${API_BASE}/api/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -43,9 +45,15 @@ signupFormElement.addEventListener('submit', async function(e) {
                     password
                 })
             });
-            
+            // Handle HTTP errors explicitly so we don't incorrectly trigger offline mode
+            if (!response.ok) {
+                const errorText = await response.text().catch(() => '');
+                alert(`Registration failed (${response.status} ${response.statusText})${errorText ? `: ${errorText}` : ''}`);
+                return;
+            }
+
             const data = await response.json();
-            
+
             if (response.ok) {
                 // Store token and user data
                 localStorage.setItem('authToken', data.token);
@@ -94,7 +102,7 @@ signinFormElement.addEventListener('submit', async function(e) {
     
     try {
         // Try to login with backend API
-        const response = await fetch('/api/auth/login', {
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -104,9 +112,15 @@ signinFormElement.addEventListener('submit', async function(e) {
                 password
             })
         });
-        
+        // Handle HTTP errors explicitly so we don't incorrectly trigger offline mode
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => '');
+            alert(`Login failed (${response.status} ${response.statusText})${errorText ? `: ${errorText}` : ''}`);
+            return;
+        }
+
         const data = await response.json();
-        
+
         if (response.ok) {
             // Store token and user data
             localStorage.setItem('authToken', data.token);
