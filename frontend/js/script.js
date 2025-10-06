@@ -245,9 +245,128 @@ document.addEventListener('click', function(e){
 document.addEventListener('click', function(e){
     if(e.target && e.target.classList.contains('panel-btn')){
         const buttonText = e.target.textContent.trim();
-        if(buttonText === 'Rewards'){
-            alert('Under Construction');
+        if(buttonText === 'Bins'){
+            showBinsPanel();
         }
-        // Dashboard and Bins buttons can be handled here later
+        // Dashboard and Rewards buttons can be handled here later
+    }
+});
+
+// Function to show bins panel
+async function showBinsPanel() {
+    const binsContent = document.getElementById('binsContent');
+    const binsGrid = document.getElementById('binsGrid');
+    
+    // Show the panel
+    binsContent.style.display = 'block';
+    
+    // Show loading state
+    binsGrid.innerHTML = '<div class="loading">Loading bins...</div>';
+    
+    try {
+        // Fetch bins from API
+        const response = await fetch(`${API_BASE}/api/bins`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch bins');
+        }
+        
+        const data = await response.json();
+        const bins = data.bins || [];
+        
+        if (bins.length === 0) {
+            binsGrid.innerHTML = '<div class="no-bins">No bins available at the moment.</div>';
+            return;
+        }
+        
+        // Display bins
+        displayBins(bins);
+    } catch (error) {
+        console.error('Error fetching bins:', error);
+        // Show fallback message
+        binsGrid.innerHTML = '<div class="error-message">Unable to load bins. Please ensure the backend is running.</div>';
+    }
+}
+
+// Function to display bins in grid
+function displayBins(bins) {
+    const binsGrid = document.getElementById('binsGrid');
+    
+    binsGrid.innerHTML = bins.map(bin => {
+        const statusClass = getStatusClass(bin.status);
+        const levelClass = getLevelClass(bin.level);
+        const binTypeIcon = getBinTypeIcon(bin.bin_type);
+        
+        return `
+            <div class="bin-card ${statusClass}">
+                <div class="bin-icon">${binTypeIcon}</div>
+                <div class="bin-info">
+                    <h3>${bin.location || 'Unknown Location'}</h3>
+                    <div class="bin-type">${formatBinType(bin.bin_type)}</div>
+                    <div class="bin-status">
+                        <span class="status-badge ${statusClass}">${bin.status || 'Unknown'}</span>
+                    </div>
+                    <div class="bin-level">
+                        <div class="level-bar">
+                            <div class="level-fill ${levelClass}" style="width: ${bin.level || 0}%"></div>
+                        </div>
+                        <span class="level-text">${bin.level || 0}% Full</span>
+                    </div>
+                    ${bin.last_emptied ? `<div class="bin-meta">Last emptied: ${formatDate(bin.last_emptied)}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Helper functions
+function getStatusClass(status) {
+    const statusMap = {
+        'active': 'status-active',
+        'full': 'status-full',
+        'maintenance': 'status-maintenance',
+        'offline': 'status-offline'
+    };
+    return statusMap[status] || 'status-unknown';
+}
+
+function getLevelClass(level) {
+    if (level >= 80) return 'level-critical';
+    if (level >= 60) return 'level-warning';
+    return 'level-normal';
+}
+
+function getBinTypeIcon(type) {
+    const iconMap = {
+        'plastic': '♻️',
+        'paper': '📄',
+        'glass': '🥃',
+        'metal': '🥫',
+        'organic': '🌱'
+    };
+    return iconMap[type] || '🗑️';
+}
+
+function formatBinType(type) {
+    if (!type) return 'General';
+    return type.charAt(0).toUpperCase() + type.slice(1);
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+}
+
+// Close bins panel
+document.addEventListener('click', function(e){
+    if(e.target && e.target.id === 'closeBinsBtn'){
+        document.getElementById('binsContent').style.display = 'none';
     }
 });
