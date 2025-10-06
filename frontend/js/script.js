@@ -170,21 +170,50 @@ function showDashboard(userData) {
     dashboard.style.display = 'block';
 }
 
-// Handle Forgot Password
-forgotPasswordLink.addEventListener('click', function(e) {
+// Handle Forgot Password (secure flow via backend)
+forgotPasswordLink.addEventListener('click', async function(e) {
     e.preventDefault();
-    
+
     const email = prompt('Please enter your email address:');
-    
-    if (email) {
-        const storedUser = localStorage.getItem('user_' + email);
-        
-        if (storedUser) {
-            const userData = JSON.parse(storedUser);
-            alert(`Password reset link sent to ${email}!\n\nFor demo purposes, your password is: ${userData.password}`);
-        } else {
-            alert('No account found with this email address.');
+    if (!email) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/auth/forgot`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+            alert(data.error || 'Failed to initiate password reset.');
+            return;
         }
+
+        // In dev, backend returns resetToken for convenience
+        let token = data.resetToken || prompt('A reset token was emailed to you. Enter the token:');
+        if (!token) return;
+
+        const newPassword = prompt('Enter a new password:');
+        if (!newPassword) return;
+
+        const resetRes = await fetch(`${API_BASE}/api/auth/reset`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, newPassword })
+        });
+
+        const resetData = await resetRes.json().catch(() => ({}));
+        if (!resetRes.ok) {
+            alert(resetData.error || 'Password reset failed.');
+            return;
+        }
+
+        alert('Password has been reset. You can now sign in with your new password.');
+    } catch (err) {
+        console.error('Forgot password error:', err);
+        alert('Network error. Please try again when you are online.');
     }
 });
 

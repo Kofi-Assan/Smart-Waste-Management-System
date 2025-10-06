@@ -65,6 +65,8 @@ async function createTables() {
         password_hash VARCHAR(255) NOT NULL,
         coin_balance INT DEFAULT 0,
         qr_code VARCHAR(255) UNIQUE,
+        reset_token_hash VARCHAR(255) NULL,
+        reset_token_expires DATETIME NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
@@ -103,6 +105,9 @@ async function createTables() {
     `;
     
     await connection.execute(usersTable);
+    // Ensure reset columns exist for older databases
+    await connection.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_hash VARCHAR(255) NULL");
+    await connection.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires DATETIME NULL");
     await connection.execute(binsTable);
     await connection.execute(transactionsTable);
     
