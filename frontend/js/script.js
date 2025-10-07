@@ -370,3 +370,160 @@ document.addEventListener('click', function(e){
         document.getElementById('binsContent').style.display = 'none';
     }
 });
+
+// QR Scanner functionality
+let qrStream = null;
+let qrScanning = false;
+
+// Initialize QR scanner when trash can is clicked
+document.addEventListener('click', function(e){
+    if(e.target && (e.target.id === 'trashCanContainer' || e.target.id === 'trashCanImage' || e.target.closest('#trashCanContainer'))){
+        openQrScanner();
+    }
+});
+
+// Open QR scanner modal
+async function openQrScanner() {
+    const modal = document.getElementById('qrScannerModal');
+    const resultDiv = document.getElementById('qrResult');
+    
+    // Hide any previous results
+    resultDiv.style.display = 'none';
+    
+    // Show modal
+    modal.style.display = 'flex';
+    
+    try {
+        // Request camera access
+        qrStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'environment', // Use back camera if available
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            } 
+        });
+        
+        const video = document.getElementById('qrVideo');
+        video.srcObject = qrStream;
+        
+        // Start scanning when video is ready
+        video.onloadedmetadata = function() {
+            video.play();
+            startQrScanning();
+        };
+        
+    } catch (error) {
+        console.error('Error accessing camera:', error);
+        alert('Unable to access camera. Please ensure camera permissions are granted.');
+        closeQrScanner();
+    }
+}
+
+// Start QR code scanning
+function startQrScanning() {
+    if (qrScanning) return;
+    
+    qrScanning = true;
+    const video = document.getElementById('qrVideo');
+    const canvas = document.getElementById('qrCanvas');
+    const context = canvas.getContext('2d');
+    
+    function scanFrame() {
+        if (!qrScanning) return;
+        
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            
+            if (code) {
+                handleQrResult(code.data);
+                return;
+            }
+        }
+        
+        requestAnimationFrame(scanFrame);
+    }
+    
+    scanFrame();
+}
+
+// Handle QR code scan result
+function handleQrResult(data) {
+    qrScanning = false;
+    
+    // Stop camera stream
+    if (qrStream) {
+        qrStream.getTracks().forEach(track => track.stop());
+        qrStream = null;
+    }
+    
+    // Show result
+    const resultDiv = document.getElementById('qrResult');
+    const resultText = document.getElementById('qrResultText');
+    
+    resultText.textContent = data;
+    resultDiv.style.display = 'block';
+    
+    // Process the QR code data (you can customize this based on your needs)
+    processQrData(data);
+}
+
+// Process QR code data
+function processQrData(data) {
+    console.log('QR Code scanned:', data);
+    
+    // Example processing - you can customize this based on your waste management needs
+    if (data.startsWith('http')) {
+        // If it's a URL, you might want to open it or process it
+        alert(`QR Code contains a URL: ${data}`);
+    } else if (data.includes('bin') || data.includes('waste')) {
+        // If it contains waste-related keywords
+        alert(`Waste bin QR code detected: ${data}`);
+    } else {
+        // Generic QR code
+        alert(`QR Code scanned successfully: ${data}`);
+    }
+}
+
+// Close QR scanner
+function closeQrScanner() {
+    qrScanning = false;
+    
+    if (qrStream) {
+        qrStream.getTracks().forEach(track => track.stop());
+        qrStream = null;
+    }
+    
+    const modal = document.getElementById('qrScannerModal');
+    modal.style.display = 'none';
+    
+    const video = document.getElementById('qrVideo');
+    video.srcObject = null;
+}
+
+// Close QR scanner modal
+document.addEventListener('click', function(e){
+    if(e.target && e.target.id === 'closeQrScanner'){
+        closeQrScanner();
+    }
+});
+
+// Scan again button
+document.addEventListener('click', function(e){
+    if(e.target && e.target.id === 'scanAgainBtn'){
+        const resultDiv = document.getElementById('qrResult');
+        resultDiv.style.display = 'none';
+        openQrScanner();
+    }
+});
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e){
+    if(e.target && e.target.id === 'qrScannerModal'){
+        closeQrScanner();
+    }
+});

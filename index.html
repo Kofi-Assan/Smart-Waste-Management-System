@@ -127,9 +127,50 @@
                 <div class="loading">Loading bins...</div>
             </div>
         </div>
-        <!-- The rest of the page is intentionally left blank per request -->
+        <!-- QR Scanner Area -->
+        <div class="qr-scanner-area">
+            <div class="trash-can-container" id="trashCanContainer">
+                <div class="css-trash-can">
+                    <div class="trash-lid"></div>
+                    <div class="trash-body">
+                        <div class="qr-code-display">
+                            <img src="img/QR code.jpg" alt="QR Code" class="qr-code-image">
+                        </div>
+                    </div>
+                </div>
+                <div class="motto-text">THE FUTURE OF RECYCLING REWARDS</div>
+            </div>
+        </div>
     </div>
 
+    <!-- QR Scanner Modal -->
+    <div id="qrScannerModal" class="qr-modal" style="display: none;">
+        <div class="qr-modal-content">
+            <div class="qr-modal-header">
+                <h3>QR Code Scanner</h3>
+                <button id="closeQrScanner" class="btn-close">×</button>
+            </div>
+            <div class="qr-scanner-container">
+                <video id="qrVideo" autoplay muted playsinline></video>
+                <canvas id="qrCanvas" style="display: none;"></canvas>
+                <div class="qr-overlay">
+                    <div class="qr-frame"></div>
+                    <div class="qr-instructions">
+                        <p>Position the QR code within the frame</p>
+                        <p>Scanning will happen automatically</p>
+                    </div>
+                </div>
+            </div>
+            <div class="qr-result" id="qrResult" style="display: none;">
+                <h4>Scan Result:</h4>
+                <p id="qrResultText"></p>
+                <button id="scanAgainBtn" class="btn">Scan Again</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include QR Code Scanner Library -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="frontend/js/script.js"></script>
 </body>
 
