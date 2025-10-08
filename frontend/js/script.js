@@ -165,9 +165,30 @@ function showDashboard(userData) {
     if (panelName) panelName.textContent = `${userData.firstName} ${userData.lastName}`;
     if (panelEmail) panelEmail.textContent = userData.email;
 
+    // Load user coin balance and bin data
+    loadUserCoinBalance(userData.id);
+    loadBinData();
+
     document.getElementById('signIn').style.display = 'none';
     document.getElementById('signup').style.display = 'none';
     dashboard.style.display = 'block';
+}
+
+// Function to load user coin balance
+async function loadUserCoinBalance(userId) {
+    try {
+        const response = await fetch(`${API_BASE}/api/users/${userId}/coins`);
+        if (response.ok) {
+            const data = await response.json();
+            const coinBalanceElement = document.getElementById('summaryCoins');
+            if (coinBalanceElement) {
+                coinBalanceElement.textContent = data.coinBalance || 0;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading coin balance:', error);
+        // Keep default value if fetch fails
+    }
 }
 
 // Handle Forgot Password (secure flow via backend)
@@ -241,14 +262,24 @@ document.addEventListener('click', function(e){
     }
 });
 
-// Handle side panel button clicks
+// Handle side panel button clicks with smooth scroll behavior
 document.addEventListener('click', function(e){
     if(e.target && e.target.classList.contains('panel-btn')){
         const buttonText = e.target.textContent.trim();
         if(buttonText === 'Bins'){
             showBinsPanel();
+            return;
         }
-        // Dashboard and Rewards buttons can be handled here later
+        if(buttonText === 'Scan'){
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+        if(buttonText === 'Dashboard'){
+            const target = document.getElementById('landingHero');
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+        }
+        // Rewards: no navigation; restore original behavior (no-op for now)
     }
 });
 
@@ -259,6 +290,9 @@ async function showBinsPanel() {
     
     // Show the panel
     binsContent.style.display = 'block';
+    // Activate background blur
+    const dashboard = document.getElementById('dashboard');
+    if (dashboard) dashboard.classList.add('blur-active');
     
     // Show loading state
     binsGrid.innerHTML = '<div class="loading">Loading bins...</div>';
@@ -299,10 +333,11 @@ function displayBins(bins) {
         
         return `
             <div class="bin-card ${statusClass}">
+                <div class="bin-id">${bin.id}</div>
                 <div class="bin-icon">${binTypeIcon}</div>
                 <div class="bin-info">
                     <h3>${bin.location || 'Unknown Location'}</h3>
-                    <div class="bin-type">${formatBinType(bin.bin_type)}</div>
+                    <div class="bin-type">General</div>
                     <div class="bin-status">
                         <span class="status-badge ${statusClass}">${bin.status || 'Unknown'}</span>
                     </div>
@@ -368,6 +403,8 @@ function formatDate(dateString) {
 document.addEventListener('click', function(e){
     if(e.target && e.target.id === 'closeBinsBtn'){
         document.getElementById('binsContent').style.display = 'none';
+        const dashboard = document.getElementById('dashboard');
+        if (dashboard) dashboard.classList.remove('blur-active');
     }
 });
 

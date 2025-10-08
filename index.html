@@ -85,7 +85,7 @@
 
     <!-- Dashboard (hidden until signed in) -->
     <div id="dashboard" style="display: none;">
-        <section class="dashboard-hero">
+        <section class="dashboard-hero" id="dashboardTop">
             <div class="dashboard-content">
                 <img src="img/GEGE Icon.jpg" alt="GEGE" class="brand-logo" />
                 <div class="dashboard-user">
@@ -100,6 +100,68 @@
                 </div>
             </div>
         </section>
+        <!-- QR Scanner Area (BIN on top) -->
+        <div class="qr-scanner-area" id="qrScannerSection">
+            <div class="trash-can-container" id="trashCanContainer">
+                <div class="css-trash-can">
+                    <div class="trash-lid"></div>
+                    <div class="trash-body">
+                        <div class="qr-code-display">
+                            <img src="img/QR code.jpg" alt="QR Code" class="qr-code-image">
+                        </div>
+                    </div>
+                </div>
+                <div class="motto-text">THE FUTURE OF RECYCLING REWARDS</div>
+            </div>
+        </div>
+        <!-- Dashboard summary section (replaces static image) -->
+        <section id="landingHero" class="landing-hero dashboard-summary">
+            <div class="summary-surface">
+            <div class="summary-container">
+                <div class="summary-copy">
+                    <h1 class="summary-title">Smart Waste Management System</h1>
+                    <p class="summary-subtitle">A smart bin monitoring system with a reward system using virtual coins</p>
+                    <button class="btn summary-cta" type="button">Get Started</button>
+                </div>
+                <div class="summary-illustration">
+                    <div class="smart-bin-display">
+                        <div class="bin-wifi-signal">📶</div>
+                        <div class="bin-container">
+                            <div class="bin-lid"></div>
+                            <div class="bin-body">
+                                <div class="bin-number">1</div>
+                            </div>
+                        </div>
+                        <div class="connection-line"></div>
+                        <div class="phone-display">
+                            <div class="coin-icon">🪙</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="summary-stats">
+                    <div class="summary-grid">
+                        <div class="summary-card summary-card-green">
+                            <div class="summary-card-icon" aria-hidden="true">🗑️</div>
+                            <div>
+                                <div class="summary-card-value" id="summaryBinsCount">1</div>
+                                <div class="summary-card-label">Bins Monitored</div>
+                            </div>
+                        </div>
+                        <div class="summary-card summary-card-blue">
+                            <div class="summary-card-icon" aria-hidden="true">🪙</div>
+                            <div>
+                                <div class="summary-card-value" id="summaryCoins">2,500</div>
+                                <div class="summary-card-label">Virtual Coins</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bin-status-list" id="binStatusList">
+                        <div class="bin-status-item">Bin 1: <strong id="bin1Status">Loading...</strong></div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </section>
         <div class="panel-area">
             <aside class="side-panel" aria-label="Sidebar">
                 <div class="panel-user">
@@ -110,9 +172,10 @@
                     </div>
                 </div>
                 <nav class="panel-nav">
+                    <button class="panel-btn" type="button">Scan</button>
                     <button class="panel-btn" type="button">Dashboard</button>
-                    <button class="panel-btn" type="button">Bins</button>
                     <button class="panel-btn" type="button">Rewards</button>
+                    <button class="panel-btn" type="button">Bins</button>
                 </nav>
             </aside>
         </div>
@@ -127,20 +190,7 @@
                 <div class="loading">Loading bins...</div>
             </div>
         </div>
-        <!-- QR Scanner Area -->
-        <div class="qr-scanner-area">
-            <div class="trash-can-container" id="trashCanContainer">
-                <div class="css-trash-can">
-                    <div class="trash-lid"></div>
-                    <div class="trash-body">
-                        <div class="qr-code-display">
-                            <img src="img/QR code.jpg" alt="QR Code" class="qr-code-image">
-                        </div>
-                    </div>
-                </div>
-                <div class="motto-text">THE FUTURE OF RECYCLING REWARDS</div>
-            </div>
-        </div>
+        
     </div>
 
     <!-- QR Scanner Modal -->

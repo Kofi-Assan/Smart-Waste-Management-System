@@ -3,23 +3,19 @@ const { pool } = require('../config/database');
 
 const router = express.Router();
 
-// Get all bins
+// Get all bins (aligned with simplified schema)
 router.get('/', async (req, res) => {
   try {
     const [bins] = await pool.execute(`
       SELECT 
-        id, 
-        location, 
-        latitude, 
-        longitude, 
-        status, 
-        level, 
-        bin_type, 
-        capacity,
+        id,
+        location,
+        status,
+        level,
         last_emptied,
         created_at,
         updated_at
-      FROM bins 
+      FROM bins
       ORDER BY created_at DESC
     `);
     
@@ -51,24 +47,14 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create new bin
+// Create new bin (status/level only; defaults: Not Full, 0)
 router.post('/', async (req, res) => {
   try {
-    const { 
-      location, 
-      latitude, 
-      longitude, 
-      binType, 
-      capacity = 100 
-    } = req.body;
-    
-    if (!location || !binType) {
-      return res.status(400).json({ error: 'Location and bin type are required' });
-    }
-    
+    const { status = 'Not Full', level = 0 } = req.body || {};
+
     const [result] = await pool.execute(
-      'INSERT INTO bins (location, latitude, longitude, bin_type, capacity) VALUES (?, ?, ?, ?, ?)',
-      [location, latitude, longitude, binType, capacity]
+      'INSERT INTO bins (location, status, level, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
+      ['Academic City University College', status, level]
     );
     
     res.status(201).json({
@@ -139,51 +125,14 @@ router.get('/status/:status', async (req, res) => {
   }
 });
 
-// Get bins by type
-router.get('/type/:type', async (req, res) => {
-  try {
-    const { type } = req.params;
-    
-    const [bins] = await pool.execute(
-      'SELECT * FROM bins WHERE bin_type = ? ORDER BY updated_at DESC',
-      [type]
-    );
-    
-    res.json({ bins });
-  } catch (error) {
-    console.error('Get bins by type error:', error);
-    res.status(500).json({ error: 'Failed to fetch bins by type' });
-  }
+// The schema no longer includes bin_type; return 410 Gone for this route
+router.get('/type/:type', async (_req, res) => {
+  res.status(410).json({ error: 'bin_type has been removed from schema' });
 });
 
 // Get nearby bins (within radius)
-router.get('/nearby/:lat/:lng/:radius', async (req, res) => {
-  try {
-    const { lat, lng, radius } = req.params;
-    
-    const [bins] = await pool.execute(`
-      SELECT 
-        id, 
-        location, 
-        latitude, 
-        longitude, 
-        status, 
-        level, 
-        bin_type,
-        (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance
-      FROM bins 
-      WHERE latitude IS NOT NULL 
-        AND longitude IS NOT NULL 
-        AND status = 'active'
-      HAVING distance < ?
-      ORDER BY distance
-    `, [lat, lng, lat, radius]);
-    
-    res.json({ bins });
-  } catch (error) {
-    console.error('Get nearby bins error:', error);
-    res.status(500).json({ error: 'Failed to fetch nearby bins' });
-  }
+router.get('/nearby/:lat/:lng/:radius', async (_req, res) => {
+  res.status(410).json({ error: 'location/latitude/longitude removed from schema' });
 });
 
 module.exports = router;

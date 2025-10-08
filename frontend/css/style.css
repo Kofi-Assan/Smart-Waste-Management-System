@@ -79,6 +79,7 @@ body {
     background-repeat: no-repeat;
     background-color: #d1fae5; 
     background: linear-gradient(to right, #eaf7ef, #d1fae5); 
+    scroll-behavior: smooth;
 }
 
 .container {
@@ -232,12 +233,191 @@ input:-webkit-autofill + label {
     max-width: none;
 }
 
+/* Blur background when bins panel is open */
+#dashboard.blur-active > :not(#binsContent) {
+    filter: blur(6px);
+    transition: filter 200ms ease;
+    pointer-events: none;
+}
+
 .dashboard-hero {
     background: linear-gradient(135deg, #34d399 0%, #10b981 60%, #059669 100%);
     color: #043227;
     border-radius: 16px;
     box-shadow: 0 20px 35px rgba(0, 0, 0, 0.25);
+    margin-bottom: 40px;
 }
+
+/* Landing hero (dashboard summary) */
+.landing-hero{
+    display: block;
+    padding: 40px 0;
+}
+
+.summary-surface{
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 35px rgba(0,0,0,.08);
+    margin: 0 auto;
+    width: min(1200px, 96vw);
+    padding: 28px 24px;
+}
+
+.dashboard-summary .summary-container{
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 32px;
+    align-items: start;
+}
+
+.summary-illustration {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.smart-bin-display {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.bin-wifi-signal {
+    font-size: 24px;
+    color: #10b981;
+}
+
+.bin-container {
+    position: relative;
+    width: 120px;
+    height: 160px;
+}
+
+.bin-lid {
+    width: 140px;
+    height: 20px;
+    background: #059669;
+    border-radius: 8px 8px 0 0;
+    position: relative;
+    z-index: 2;
+}
+
+.bin-body {
+    width: 120px;
+    height: 140px;
+    background: #10b981;
+    border-radius: 0 0 12px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.bin-number {
+    background: #1f2937;
+    color: white;
+    width: 40px;
+    height: 30px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.connection-line {
+    width: 100px;
+    height: 2px;
+    background: transparent;
+    border: 2px dashed #6b7280;
+    margin: 10px 0;
+    position: relative;
+}
+
+.connection-line::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: transparent;
+    border-top: 1px dashed #6b7280;
+    border-bottom: 1px dashed #6b7280;
+}
+
+.phone-display {
+    width: 60px;
+    height: 100px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.coin-icon {
+    font-size: 32px;
+}
+
+.summary-title{
+    font-size: 56px;
+    line-height: 1.1;
+    color: #1f2937;
+    margin-bottom: 16px;
+}
+
+.summary-subtitle{
+    color: #374151;
+    margin-bottom: 16px;
+}
+
+.summary-cta{
+    width: auto;
+    padding: 10px 16px;
+}
+
+.summary-grid{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.summary-card{
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.summary-card-green{ background: #10b98122; }
+.summary-card-blue{ background: #2563eb22; }
+
+.summary-card-icon{ font-size: 28px; }
+.summary-card-value{ font-size: 28px; color: #111827; }
+.summary-card-label{ color: #374151; font-size: 14px; }
+
+.bin-status-list{
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.bin-status-item{ color: #065f46; margin-bottom: 8px; }
+.bin-status-item:last-child{ margin-bottom: 0; }
 
 .dashboard-content {
     display: flex;
@@ -327,16 +507,19 @@ input:-webkit-autofill + label {
 }
 
 .side-panel {
-    position: relative;
+    position: fixed;
+    top: 120px;
+    left: 0;
     width: 280px;
     background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
     border-radius: 12px;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
     border: 1px solid #cbd5e1;
-    margin: 16px 0 0 0;
+    margin: 0;
     transform: translateX(-220px);
     transition: transform 300ms ease;
     padding: 16px;
+    z-index: 1500;
 }
 
 .side-panel:hover {
@@ -473,6 +656,23 @@ input:-webkit-autofill + label {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     border: 2px solid #e5e7eb;
+    position: relative;
+}
+
+.bin-id {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: #10b981;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
 }
 
 .bin-card:hover {
@@ -601,13 +801,14 @@ input:-webkit-autofill + label {
 
 /* QR Scanner Area Styles */
 .qr-scanner-area {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 300px;
-    height: 400px;
-    z-index: 100;
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 0;
+    margin: 40px 0;
+    z-index: 1;
 }
 
 .trash-can-container {
