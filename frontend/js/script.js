@@ -191,6 +191,32 @@ async function loadUserCoinBalance(userId) {
     }
 }
 
+// Function to load bin data for dashboard
+async function loadBinData() {
+    try {
+        const response = await fetch(`${API_BASE}/api/bins`);
+        if (response.ok) {
+            const data = await response.json();
+            const bins = data.bins || [];
+            
+            if (bins.length > 0) {
+                const bin1 = bins[0]; // Get the first (and only) bin
+                const bin1StatusElement = document.getElementById('bin1Status');
+                if (bin1StatusElement) {
+                    const statusText = bin1.status === 'Full' ? 'Full' : `${bin1.level}% Full`;
+                    bin1StatusElement.textContent = statusText;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading bin data:', error);
+        const bin1StatusElement = document.getElementById('bin1Status');
+        if (bin1StatusElement) {
+            bin1StatusElement.textContent = 'Error loading';
+        }
+    }
+}
+
 // Handle Forgot Password (secure flow via backend)
 forgotPasswordLink.addEventListener('click', async function(e) {
     e.preventDefault();
