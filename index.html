@@ -10,27 +10,7 @@
 </head>
 
 <body>
-    <div class="wrapper">
-        <nav class="navbar">
-            <div class="nav-logo">
-                <p>GEGE</p>
-            </div>
-            <ul class="nav-links">
-                <li><a href="#" class="link active">Home</a></li>
-                <li><a href="#" class="link ">About</a></li>
-                <li><a href="#" class="link ">Services</a></li>
-                <li><a href="#" class="link ">Contact</a></li>
-            </ul>
-            <div class="auth-buttons">
-                <button class="btn" id="navSignInButton">Sign In</button>
-                <button class="btn" id="navSignUpButton">Sign Up</button>
-
-            </div>
-            <div class="nav-menu-btn">
-                <i class="bx bx-menu"></i>
-            </div>
-        </nav>
-    </div>
+    
 
     <!-- Sign Up Form -->
     <div class="container" id="signup" style="display: none;">
@@ -103,6 +83,128 @@
         </div>
     </div>
 
+    <!-- Dashboard (hidden until signed in) -->
+    <div id="dashboard" style="display: none;">
+        <section class="dashboard-hero" id="dashboardTop">
+            <div class="dashboard-content">
+                <img src="img/GEGE Icon.jpg" alt="GEGE" class="brand-logo" />
+                <div class="dashboard-user">
+                    <div class="avatar" aria-hidden="true">👤</div>
+                    <div>
+                        <h2 id="dashName">Welcome</h2>
+                        <p id="dashEmail"></p>
+                    </div>
+                </div>
+                <div class="dashboard-actions">
+                    <button id="logoutBtn" class="btn btn-logout">Sign Out</button>
+                </div>
+            </div>
+        </section>
+        <!-- QR Scanner Area (BIN on top) -->
+        <div class="qr-scanner-area" id="qrScannerSection">
+            <div class="trash-can-container" id="trashCanContainer">
+                <div class="css-trash-can">
+                    <div class="trash-lid"></div>
+                    <div class="trash-body">
+                        <div class="qr-code-display">
+                            <img src="img/QR code.jpg" alt="QR Code" class="qr-code-image">
+                        </div>
+                    </div>
+                </div>
+                <div class="motto-text">THE FUTURE OF RECYCLING REWARDS</div>
+            </div>
+        </div>
+        <!-- Dashboard summary section (replaces static image) -->
+        <section id="landingHero" class="landing-hero dashboard-summary">
+            <div class="summary-surface">
+            <div class="summary-container">
+                <div class="summary-copy">
+                    <h1 class="summary-title">Smart Waste Management System</h1>
+                    <p class="summary-subtitle">A smart bin monitoring system with a reward system using virtual coins</p>
+                </div>
+                <div class="summary-stats">
+                    <div class="summary-grid">
+                        <div class="summary-card summary-card-green">
+                            <div class="summary-card-icon" aria-hidden="true">🗑️</div>
+                            <div>
+                                <div class="summary-card-value" id="summaryBinsCount">1</div>
+                                <div class="summary-card-label">Bins Monitored</div>
+                            </div>
+                        </div>
+                        <div class="summary-card summary-card-blue">
+                            <div class="summary-card-icon" aria-hidden="true">🪙</div>
+                            <div>
+                                <div class="summary-card-value" id="summaryCoins">2,500</div>
+                                <div class="summary-card-label">Virtual Coins</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bin-status-list" id="binStatusList">
+                        <div class="bin-status-item">Bin 1: <strong id="bin1Status">Loading...</strong></div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </section>
+        <div class="panel-area">
+            <aside class="side-panel" aria-label="Sidebar">
+                <div class="panel-user">
+                    <div class="avatar" aria-hidden="true">👤</div>
+                    <div>
+                        <div class="panel-username" id="panelName">Username</div>
+                        <div class="panel-email" id="panelEmail">email@example.com</div>
+                    </div>
+                </div>
+                <nav class="panel-nav">
+                    <button class="panel-btn" type="button">Scan</button>
+                    <button class="panel-btn" type="button">Dashboard</button>
+                    <button class="panel-btn" type="button">Rewards</button>
+                    <button class="panel-btn" type="button">Bins</button>
+                </nav>
+            </aside>
+        </div>
+        
+        <!-- Bins Content Panel -->
+        <div id="binsContent" class="content-panel" style="display: none;">
+            <div class="content-header">
+                <h2>Smart Waste Bins</h2>
+                <button id="closeBinsBtn" class="btn-close">×</button>
+            </div>
+            <div class="bins-grid" id="binsGrid">
+                <div class="loading">Loading bins...</div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- QR Scanner Modal -->
+    <div id="qrScannerModal" class="qr-modal" style="display: none;">
+        <div class="qr-modal-content">
+            <div class="qr-modal-header">
+                <h3>QR Code Scanner</h3>
+                <button id="closeQrScanner" class="btn-close">×</button>
+            </div>
+            <div class="qr-scanner-container">
+                <video id="qrVideo" autoplay muted playsinline></video>
+                <canvas id="qrCanvas" style="display: none;"></canvas>
+                <div class="qr-overlay">
+                    <div class="qr-frame"></div>
+                    <div class="qr-instructions">
+                        <p>Position the QR code within the frame</p>
+                        <p>Scanning will happen automatically</p>
+                    </div>
+                </div>
+            </div>
+            <div class="qr-result" id="qrResult" style="display: none;">
+                <h4>Scan Result:</h4>
+                <p id="qrResultText"></p>
+                <button id="scanAgainBtn" class="btn">Scan Again</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include QR Code Scanner Library -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="frontend/js/script.js"></script>
 </body>
 
