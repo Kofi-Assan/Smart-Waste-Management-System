@@ -15,7 +15,8 @@ void setup() {
   pinMode(echoPin, INPUT);
   pinMode(ledPin, OUTPUT);   // ✅ Set LED pin as output
 
-  servo.write(0); 
+  servo.write(90);
+  delay(500); //start closed at 90 degrees
   Serial.begin(9600);
 }
 
