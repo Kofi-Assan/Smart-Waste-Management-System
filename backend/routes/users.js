@@ -106,17 +106,17 @@ router.get('/:id/transactions', async (req, res) => {
     const { id } = req.params;
     const { limit = 50, offset = 0 } = req.query;
     
+    // Use a schema-tolerant query (omit optional/non-universal columns)
     const [transactions] = await pool.execute(`
       SELECT 
         t.id,
         t.coins_earned,
-        t.waste_type,
-        t.weight,
         t.transaction_date,
+        t.bin_id,
         b.location as bin_location,
         b.bin_type
       FROM transactions t
-      JOIN bins b ON t.bin_id = b.id
+      LEFT JOIN bins b ON t.bin_id = b.id
       WHERE t.user_id = ?
       ORDER BY t.transaction_date DESC
       LIMIT ? OFFSET ?
@@ -292,11 +292,38 @@ router.post('/:id/redeem', async (req, res) => {
         [cost, id]
       );
       
-      // Record redemption (you might want to create a redemptions table)
-      await connection.execute(
-        'INSERT INTO transactions (user_id, bin_id, coins_earned, waste_type, transaction_date) VALUES (?, NULL, ?, ?, NOW())',
-        [id, -cost, `REDEEMED: ${rewardName}`]
+      // Record redemption in transactions table. Build INSERT based on existing columns
+      const [columnsRows] = await connection.execute(
+        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'transactions'`
       );
+      const existingColumns = new Set(columnsRows.map(r => r.COLUMN_NAME));
+
+      const insertColumns = ['user_id', 'coins_earned'];
+      const insertValues = [id, -cost];
+      const placeholders = ['?', '?'];
+
+      if (existingColumns.has('bin_id')) {
+        insertColumns.push('bin_id');
+        insertValues.push(null);
+        placeholders.push('?');
+      }
+      if (existingColumns.has('waste_type')) {
+        insertColumns.push('waste_type');
+        insertValues.push('redeem');
+        placeholders.push('?');
+      }
+      if (existingColumns.has('weight')) {
+        insertColumns.push('weight');
+        insertValues.push(null);
+        placeholders.push('?');
+      }
+      if (existingColumns.has('transaction_date')) {
+        insertColumns.push('transaction_date');
+        // Use NOW() inline, so no placeholder needed here
+      }
+
+      const insertSql = `INSERT INTO transactions (${insertColumns.join(', ')}) VALUES (${placeholders.join(', ')}${existingColumns.has('transaction_date') ? ', NOW()' : ''})`;
+      await connection.execute(insertSql, insertValues);
       
       await connection.commit();
       
