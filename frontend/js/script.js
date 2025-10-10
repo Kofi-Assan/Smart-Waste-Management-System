@@ -167,7 +167,7 @@ function showDashboard(userData) {
 
     // Load user coin balance and bin data
     loadUserCoinBalance(userData.id);
-    loadBinData();
+    startBinDataRefresh(); // Start auto-refresh for real-time updates
 
     document.getElementById('signIn').style.display = 'none';
     document.getElementById('signup').style.display = 'none';
@@ -205,6 +205,15 @@ async function loadBinData() {
                 if (bin1StatusElement) {
                     const statusText = bin1.status === 'Full' ? 'Full' : `${bin1.level}% Full`;
                     bin1StatusElement.textContent = statusText;
+                    
+                    // Add visual indicator based on status
+                    bin1StatusElement.className = getStatusClass(bin1.status);
+                }
+                
+                // Update bin count
+                const binsCountElement = document.getElementById('summaryBinsCount');
+                if (binsCountElement) {
+                    binsCountElement.textContent = bins.length;
                 }
             }
         }
@@ -213,8 +222,44 @@ async function loadBinData() {
         const bin1StatusElement = document.getElementById('bin1Status');
         if (bin1StatusElement) {
             bin1StatusElement.textContent = 'Error loading';
+            bin1StatusElement.className = 'error';
         }
     }
+}
+
+// Auto-refresh bin data every 30 seconds
+let binDataInterval;
+
+function startBinDataRefresh() {
+    // Clear any existing interval
+    if (binDataInterval) {
+        clearInterval(binDataInterval);
+    }
+    
+    // Load initial data
+    loadBinData();
+    
+    // Set up auto-refresh every 30 seconds
+    binDataInterval = setInterval(loadBinData, 30000);
+}
+
+function stopBinDataRefresh() {
+    if (binDataInterval) {
+        clearInterval(binDataInterval);
+        binDataInterval = null;
+    }
+}
+
+// Helper function to get status class for styling
+function getStatusClass(status) {
+    const statusMap = {
+        'Full': 'status-full',
+        'Almost Full': 'status-warning',
+        'Half Full': 'status-normal',
+        'Not Full': 'status-empty',
+        'Empty': 'status-empty'
+    };
+    return statusMap[status] || 'status-unknown';
 }
 
 // Handle Forgot Password (secure flow via backend)
@@ -275,6 +320,9 @@ document.querySelectorAll('.icons i').forEach(icon => {
 // Logout
 document.addEventListener('click', function(e){
     if(e.target && e.target.id === 'logoutBtn'){
+        // Stop auto-refresh
+        stopBinDataRefresh();
+        
         // Show sign-in form again and hide dashboard
         document.getElementById('dashboard').style.display = 'none';
         document.getElementById('signIn').style.display = 'block';
@@ -305,7 +353,10 @@ document.addEventListener('click', function(e){
             if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             return;
         }
-        // Rewards: no navigation; restore original behavior (no-op for now)
+        if(buttonText === 'Rewards'){
+            showRewardsPanel();
+            return;
+        }
     }
 });
 
@@ -352,6 +403,9 @@ async function showBinsPanel() {
 function displayBins(bins) {
     const binsGrid = document.getElementById('binsGrid');
     
+    // Check for coin awards before displaying
+    checkForCoinAwards(bins);
+    
     binsGrid.innerHTML = bins.map(bin => {
         const statusClass = getStatusClass(bin.status);
         const levelClass = getLevelClass(bin.level);
@@ -378,6 +432,129 @@ function displayBins(bins) {
             </div>
         `;
     }).join('');
+}
+
+// Function to check for coin awards from bin level increases
+function checkForCoinAwards(bins) {
+    // Store previous bin levels in localStorage for comparison
+    const previousLevels = JSON.parse(localStorage.getItem('previousBinLevels') || '{}');
+    const currentLevels = {};
+    let totalCoinsAwarded = 0;
+    
+    bins.forEach(bin => {
+        const binId = bin.id;
+        const currentLevel = Math.round(bin.level || 0);
+        const previousLevel = previousLevels[binId] || 0;
+        
+        currentLevels[binId] = currentLevel;
+        
+        // Calculate coins for level increase
+        if (currentLevel > previousLevel) {
+            const levelIncrease = currentLevel - previousLevel;
+            const tenPercentIncrements = Math.floor(levelIncrease / 10);
+            const coinsAwarded = tenPercentIncrements * 5;
+            
+            if (coinsAwarded > 0) {
+                totalCoinsAwarded += coinsAwarded;
+                showCoinAwardNotification(coinsAwarded, binId, previousLevel, currentLevel);
+            }
+        }
+    });
+    
+    // Update stored levels
+    localStorage.setItem('previousBinLevels', JSON.stringify(currentLevels));
+    
+    // Update coin balance if any coins were awarded
+    if (totalCoinsAwarded > 0) {
+        updateCoinBalance(totalCoinsAwarded);
+    }
+}
+
+// Function to show coin award notification
+function showCoinAwardNotification(coins, binId, fromLevel, toLevel) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'coin-award-notification';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <div class="notification-icon">🪙</div>
+            <div class="notification-text">
+                <div class="notification-title">Coins Earned!</div>
+                <div class="notification-details">
+                    +${coins} coins for Bin ${binId}<br>
+                    Level: ${fromLevel}% → ${toLevel}%
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    // Remove after 4 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
+}
+
+// Function to update coin balance
+function updateCoinBalance(coinsToAdd) {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    if (!userData.id) return;
+    
+    // Update local display
+    const summaryCoinsElement = document.getElementById('summaryCoins');
+    const headerCoinBalance = document.getElementById('headerCoinBalance');
+    
+    if (summaryCoinsElement) {
+        const currentBalance = parseInt(summaryCoinsElement.textContent.replace(/,/g, '') || 0);
+        const newBalance = currentBalance + coinsToAdd;
+        summaryCoinsElement.textContent = newBalance.toLocaleString();
+    }
+    
+    if (headerCoinBalance) {
+        const currentBalance = parseInt(headerCoinBalance.textContent.replace(/,/g, '') || 0);
+        const newBalance = currentBalance + coinsToAdd;
+        headerCoinBalance.textContent = newBalance.toLocaleString();
+    }
+    
+    // Update backend (optional - for persistence)
+    updateUserCoinBalance(userData.id, coinsToAdd);
+}
+
+// Function to update user coin balance in backend
+async function updateUserCoinBalance(userId, coinsToAdd) {
+    try {
+        const response = await fetch(`${API_BASE}/api/users/${userId}/coins`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            body: JSON.stringify({
+                coins: coinsToAdd,
+                action: 'add'
+            })
+        });
+        
+        if (response.ok) {
+            console.log(`✅ Updated user ${userId} coin balance by +${coinsToAdd}`);
+        } else {
+            console.error('❌ Failed to update coin balance in backend');
+        }
+    } catch (error) {
+        console.error('❌ Error updating coin balance:', error);
+    }
 }
 
 // Helper functions
@@ -539,6 +716,19 @@ function handleQrResult(data) {
 function processQrData(data) {
     console.log('QR Code scanned:', data);
     
+    try {
+        // Try to parse as JSON (for our trash collection QR code)
+        const qrData = JSON.parse(data);
+        
+        if (qrData.type === 'trash_collection_confirmation') {
+            // Handle trash collection confirmation
+            handleTrashCollectionConfirmation(qrData);
+            return;
+        }
+    } catch (e) {
+        // Not JSON, handle as plain text
+    }
+    
     // Example processing - you can customize this based on your waste management needs
     if (data.startsWith('http')) {
         // If it's a URL, you might want to open it or process it
@@ -547,9 +737,39 @@ function processQrData(data) {
         // If it contains waste-related keywords
         alert(`Waste bin QR code detected: ${data}`);
     } else {
-        // Generic QR code
-        alert(`QR Code scanned successfully: ${data}`);
+        // Generic QR code - award coins for any scan
+        const coinsEarned = 25; // Award 25 coins for generic scans
+        awardCoinsForScanning(coinsEarned);
+        alert(`QR Code scanned successfully: ${data}\n\n🪙 +${coinsEarned} Coins Earned!`);
     }
+}
+
+// Handle trash collection confirmation
+function handleTrashCollectionConfirmation(qrData) {
+    console.log('Trash collection confirmation received:', qrData);
+    
+    // Award coins for scanning QR code
+    const coinsEarned = 50; // Award 50 coins for each scan
+    awardCoinsForScanning(coinsEarned);
+    
+    // Show confirmation message
+    const confirmationMessage = `
+        ✅ Trash Collection Confirmed!
+        
+        Bin ID: ${qrData.binId}
+        Location: ${qrData.location}
+        Action: ${qrData.action}
+        System: ${qrData.system}
+        
+        🪙 +${coinsEarned} Coins Earned!
+        
+        Collection has been successfully recorded.
+    `;
+    
+    alert(confirmationMessage);
+    
+    // Update bin status (you would need to implement the API call)
+    updateBinAfterCollection(qrData.binId);
 }
 
 // Close QR scanner
@@ -590,3 +810,315 @@ document.addEventListener('click', function(e){
         closeQrScanner();
     }
 });
+
+// Function to show rewards panel
+async function showRewardsPanel() {
+    const rewardsContent = document.getElementById('rewardsContent');
+    const rewardsGrid = document.getElementById('rewardsGrid');
+    
+    // Show the panel
+    rewardsContent.style.display = 'block';
+    // Activate background blur
+    const dashboard = document.getElementById('dashboard');
+    if (dashboard) dashboard.classList.add('blur-active');
+    
+    // Update coin balance in header
+    updateHeaderCoinBalance();
+    
+    // Show loading state
+    rewardsGrid.innerHTML = '<div class="loading">Loading rewards...</div>';
+    
+    try {
+        // Load and display rewards
+        displayRewards();
+    } catch (error) {
+        console.error('Error loading rewards:', error);
+        // Show fallback message
+        rewardsGrid.innerHTML = '<div class="error-message">Unable to load rewards. Please try again later.</div>';
+    }
+}
+
+// Function to display rewards in grid
+function displayRewards() {
+    const rewardsGrid = document.getElementById('rewardsGrid');
+    
+    const rewards = [
+        {
+            id: 1,
+            name: "Amazon Gift Card",
+            type: "Gift Card",
+            description: "$25 Amazon Gift Card",
+            cost: 1000,
+            icon: "🎁",
+            category: "gift-cards"
+        },
+        {
+            id: 2,
+            name: "Starbucks Gift Card",
+            type: "Gift Card", 
+            description: "$15 Starbucks Gift Card",
+            cost: 600,
+            icon: "🎁",
+            category: "gift-cards"
+        },
+        {
+            id: 3,
+            name: "PlayStation 5",
+            type: "Game Console",
+            description: "Sony PlayStation 5 Console",
+            cost: 50000,
+            icon: "🎮",
+            category: "electronics"
+        }
+    ];
+    
+    rewardsGrid.innerHTML = rewards.map(reward => {
+        const categoryClass = getRewardCategoryClass(reward.category);
+        
+        return `
+            <div class="reward-card ${categoryClass}" data-category="${reward.category}">
+                <div class="reward-badge">${reward.id}</div>
+                <div class="reward-icon">${reward.icon}</div>
+                <div class="reward-info">
+                    <h3>${reward.name}</h3>
+                    <div class="reward-type">${reward.type}</div>
+                    <div class="reward-description">${reward.description}</div>
+                    <div class="reward-price">
+                        <span class="coin-cost">${reward.cost.toLocaleString()}</span>
+                        <span class="coin-symbol">🪙</span>
+                    </div>
+                    <button class="redeem-btn" onclick="redeemReward(${reward.id}, '${reward.name}', ${reward.cost})">Redeem</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Helper function to get reward category class
+function getRewardCategoryClass(category) {
+    const categoryMap = {
+        'gift-cards': 'reward-gift-cards',
+        'electronics': 'reward-electronics', 
+        'entertainment': 'reward-entertainment',
+        'discounts': 'reward-discounts',
+        'vouchers': 'reward-vouchers'
+    };
+    return categoryMap[category] || 'reward-general';
+}
+
+// Update coin balance in header
+function updateHeaderCoinBalance() {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    if (userData.id) {
+        loadUserCoinBalance(userData.id).then(() => {
+            const headerCoinBalance = document.getElementById('headerCoinBalance');
+            const summaryCoinsElement = document.getElementById('summaryCoins');
+            if (headerCoinBalance && summaryCoinsElement) {
+                headerCoinBalance.textContent = summaryCoinsElement.textContent;
+            }
+        });
+    }
+}
+
+// Close rewards panel
+document.addEventListener('click', function(e){
+    if(e.target && e.target.id === 'closeRewardsBtn'){
+        document.getElementById('rewardsContent').style.display = 'none';
+        const dashboard = document.getElementById('dashboard');
+        if (dashboard) dashboard.classList.remove('blur-active');
+    }
+});
+
+// Update coin balance in rewards panel
+function updateRewardsCoinBalance() {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    if (userData.id) {
+        loadUserCoinBalance(userData.id).then(() => {
+            const coinBalanceElement = document.getElementById('userCoinBalance');
+            const summaryCoinsElement = document.getElementById('summaryCoins');
+            if (coinBalanceElement && summaryCoinsElement) {
+                coinBalanceElement.textContent = summaryCoinsElement.textContent;
+            }
+        });
+    }
+}
+
+// Filter rewards by category
+function filterRewards(category) {
+    const rewardCards = document.querySelectorAll('.reward-card');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    
+    // Update active filter button
+    filterButtons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Show/hide reward cards based on category
+    rewardCards.forEach(card => {
+        if (category === 'all' || card.dataset.category === category) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Redeem reward function
+async function redeemReward(rewardId, rewardName, cost) {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const currentBalance = parseInt(document.getElementById('userCoinBalance').textContent.replace(/,/g, ''));
+    
+    // Check if user has enough coins
+    if (currentBalance < cost) {
+        alert(`Insufficient coins! You need ${cost.toLocaleString()} coins but only have ${currentBalance.toLocaleString()}.`);
+        return;
+    }
+    
+    // Confirm redemption
+    const confirmMessage = `Are you sure you want to redeem "${rewardName}" for ${cost.toLocaleString()} coins?`;
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    try {
+        // Call backend API to process redemption
+        const response = await fetch(`${API_BASE}/api/users/${userData.id}/redeem`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            body: JSON.stringify({
+                rewardId: rewardId,
+                rewardName: rewardName,
+                cost: cost
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Update coin balance
+            const newBalance = currentBalance - cost;
+            document.getElementById('userCoinBalance').textContent = newBalance.toLocaleString();
+            document.getElementById('summaryCoins').textContent = newBalance.toLocaleString();
+            
+            // Show success message
+            alert(`🎉 Congratulations! You have successfully redeemed "${rewardName}"!\n\nYour new coin balance: ${newBalance.toLocaleString()} coins\n\nYour reward will be processed and delivered to your registered email address.`);
+            
+            // Disable the redeem button for this reward
+            const redeemBtn = event.target;
+            redeemBtn.disabled = true;
+            redeemBtn.textContent = 'Redeemed';
+            redeemBtn.style.background = '#9ca3af';
+            
+        } else {
+            const errorData = await response.json();
+            alert(`Redemption failed: ${errorData.error || 'Unknown error'}`);
+        }
+        
+    } catch (error) {
+        console.error('Redemption error:', error);
+        
+        // Fallback: Update balance locally (for demo purposes)
+        const newBalance = currentBalance - cost;
+        document.getElementById('userCoinBalance').textContent = newBalance.toLocaleString();
+        document.getElementById('summaryCoins').textContent = newBalance.toLocaleString();
+        
+        alert(`🎉 Demo Mode: You have successfully redeemed "${rewardName}"!\n\nYour new coin balance: ${newBalance.toLocaleString()} coins\n\nNote: This is a demo. In a real system, your reward would be processed.`);
+        
+        // Disable the redeem button
+        const redeemBtn = event.target;
+        redeemBtn.disabled = true;
+        redeemBtn.textContent = 'Redeemed';
+        redeemBtn.style.background = '#9ca3af';
+    }
+}
+
+// Award coins for QR code scanning (called from QR scanner)
+function awardCoinsForScanning(amount = 50) {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    if (!userData.id) return;
+    
+    // Update coin balance
+    const currentBalance = parseInt(document.getElementById('summaryCoins').textContent.replace(/,/g, '') || 0);
+    const newBalance = currentBalance + amount;
+    
+    document.getElementById('summaryCoins').textContent = newBalance.toLocaleString();
+    
+    // Update rewards panel if it's open
+    const rewardsBalance = document.getElementById('userCoinBalance');
+    if (rewardsBalance) {
+        rewardsBalance.textContent = newBalance.toLocaleString();
+    }
+    
+    // Show notification
+    showCoinNotification(amount, newBalance);
+}
+
+// Show coin earning notification
+function showCoinNotification(earned, newTotal) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 15px rgba(16, 185, 129, 0.3);
+        z-index: 10000;
+        font-weight: bold;
+        animation: slideIn 0.5s ease-out;
+    `;
+    
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.2rem;">🪙</span>
+            <div>
+                <div>+${earned} Coins Earned!</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Total: ${newTotal.toLocaleString()}</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.5s ease-in';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
+    }, 3000);
+}
+
+// Add CSS animations for notifications
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);

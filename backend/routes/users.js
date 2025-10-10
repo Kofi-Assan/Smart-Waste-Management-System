@@ -59,6 +59,47 @@ router.put('/:id/coins', async (req, res) => {
   }
 });
 
+// Add coins to user balance (POST method for frontend compatibility)
+router.post('/:id/coins', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { coins, action = 'add' } = req.body;
+    
+    if (typeof coins !== 'number') {
+      return res.status(400).json({ error: 'Coins must be a number' });
+    }
+    
+    let coinChange = coins;
+    if (action === 'subtract') {
+      coinChange = -coins;
+    }
+    
+    const [result] = await pool.execute(
+      'UPDATE users SET coin_balance = coin_balance + ? WHERE id = ?',
+      [coinChange, id]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Get updated balance
+    const [users] = await pool.execute(
+      'SELECT coin_balance FROM users WHERE id = ?',
+      [id]
+    );
+    
+    res.json({ 
+      message: 'Coin balance updated successfully',
+      newBalance: users[0].coin_balance,
+      coinsAdded: coinChange
+    });
+  } catch (error) {
+    console.error('Add coins error:', error);
+    res.status(500).json({ error: 'Failed to update coin balance' });
+  }
+});
+
 // Get user transactions
 router.get('/:id/transactions', async (req, res) => {
   try {
@@ -201,6 +242,87 @@ router.get('/leaderboard/top', async (req, res) => {
   } catch (error) {
     console.error('Get leaderboard error:', error);
     res.status(500).json({ error: 'Failed to fetch leaderboard' });
+  }
+});
+
+// Redeem reward
+router.post('/:id/redeem', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rewardId, rewardName, cost } = req.body;
+    
+    if (!rewardId || !rewardName || !cost) {
+      return res.status(400).json({ error: 'Reward ID, name, and cost are required' });
+    }
+    
+    if (typeof cost !== 'number' || cost <= 0) {
+      return res.status(400).json({ error: 'Cost must be a positive number' });
+    }
+    
+    // Start transaction
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+    
+    try {
+      // Check user's current balance
+      const [users] = await connection.execute(
+        'SELECT coin_balance FROM users WHERE id = ?',
+        [id]
+      );
+      
+      if (users.length === 0) {
+        await connection.rollback();
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const currentBalance = users[0].coin_balance;
+      
+      if (currentBalance < cost) {
+        await connection.rollback();
+        return res.status(400).json({ 
+          error: 'Insufficient coins',
+          currentBalance,
+          requiredCost: cost
+        });
+      }
+      
+      // Deduct coins from user balance
+      await connection.execute(
+        'UPDATE users SET coin_balance = coin_balance - ? WHERE id = ?',
+        [cost, id]
+      );
+      
+      // Record redemption (you might want to create a redemptions table)
+      await connection.execute(
+        'INSERT INTO transactions (user_id, bin_id, coins_earned, waste_type, transaction_date) VALUES (?, NULL, ?, ?, NOW())',
+        [id, -cost, `REDEEMED: ${rewardName}`]
+      );
+      
+      await connection.commit();
+      
+      // Get updated balance
+      const [updatedUsers] = await pool.execute(
+        'SELECT coin_balance FROM users WHERE id = ?',
+        [id]
+      );
+      
+      res.json({
+        message: 'Reward redeemed successfully',
+        rewardName,
+        cost,
+        newBalance: updatedUsers[0].coin_balance
+      });
+      
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+    
+  } catch (error) {
+    console.error('Redeem reward error:', error);
+    res.status(500).json({ error: 'Failed to redeem reward' });
   }
 });
 
