@@ -19,7 +19,7 @@ const char* password = "ubxu2898";
 
 // Replace with your computer’s IPv4 and server port
 // Example: http://192.168.0.105:3000/api/update
-const char* serverName = "http://192.168.x.x:3000/api/update";
+const char* serverName = "http:// 10.135.126.203/api/update";
 
 // Timing
 unsigned long previousMillis = 0;
