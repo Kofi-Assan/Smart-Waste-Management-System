@@ -94,10 +94,8 @@ async function createTables() {
       CREATE TABLE IF NOT EXISTS transactions (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
-        bin_id INT NOT NULL,
+        bin_id INT NULL,
         coins_earned INT NOT NULL,
-        waste_type ENUM('plastic', 'paper', 'glass', 'metal', 'organic') NOT NULL,
-        weight DECIMAL(5, 2),
         transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (bin_id) REFERENCES bins(id) ON DELETE CASCADE
@@ -110,6 +108,21 @@ async function createTables() {
     await connection.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires DATETIME NULL");
     await connection.execute(binsTable);
     await connection.execute(transactionsTable);
+    
+    // Loosen constraints to allow redemption transactions without a bin
+    // These ALTERs are best-effort; if schema already matches, they may fail and that's fine
+    try {
+      await connection.execute('ALTER TABLE transactions MODIFY COLUMN bin_id INT NULL');
+    } catch (e) {
+      // ignore if already nullable or column differs in older environments
+    }
+    // Drop legacy columns if they exist
+    try {
+      await connection.execute('ALTER TABLE transactions DROP COLUMN IF EXISTS waste_type');
+    } catch (e) {}
+    try {
+      await connection.execute('ALTER TABLE transactions DROP COLUMN IF EXISTS weight');
+    } catch (e) {}
     
     console.log('✅ Tables created successfully');
   } finally {

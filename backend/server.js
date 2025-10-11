@@ -4,9 +4,11 @@ const path = require('path');
 require('dotenv').config();
 
 const { testConnection, initializeDatabase } = require('./config/database');
+const { verifyEmailConfig } = require('./services/emailService');
 const authRoutes = require('./routes/auth');
 const binRoutes = require('./routes/bins');
 const userRoutes = require('./routes/users');
+const emailRoutes = require('./routes/email');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +25,7 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 app.use('/api/auth', authRoutes);
 app.use('/api/bins', binRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/email', emailRoutes);
 
 // Serve main HTML file
 app.get('/', (req, res) => {
@@ -63,6 +66,9 @@ async function startServer() {
     
     // Initialize database tables
     await initializeDatabase();
+    
+    // Verify email configuration
+    await verifyEmailConfig();
     
     // Start server
     app.listen(PORT, () => {

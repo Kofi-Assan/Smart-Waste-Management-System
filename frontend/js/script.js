@@ -418,9 +418,6 @@ function displayBins(bins) {
                 <div class="bin-info">
                     <h3>${bin.location || 'Unknown Location'}</h3>
                     <div class="bin-type">General</div>
-                    <div class="bin-status">
-                        <span class="status-badge ${statusClass}">${bin.status || 'Unknown'}</span>
-                    </div>
                     <div class="bin-level">
                         <div class="level-bar">
                             <div class="level-fill ${levelClass}" style="width: ${bin.level || 0}%"></div>
@@ -716,55 +713,105 @@ function handleQrResult(data) {
 function processQrData(data) {
     console.log('QR Code scanned:', data);
     
+    // Stop QR scanning immediately to prevent multiple scans
+    qrScanning = false;
+    
+    // Close QR scanner modal
+    closeQrScanner();
+    
+    // Define valid QR code patterns for the Smart Waste Management System
+    const validPatterns = {
+        // User QR codes (generated during registration)
+        userQr: /^GEGE_USER_\d+_[a-zA-Z0-9]+$/,
+        // Trash collection confirmation QR codes
+        trashCollection: /^TRASH_COLLECTION_\d+_[a-zA-Z0-9]+$/,
+        // Bin QR codes
+        binQr: /^BIN_\d+_[a-zA-Z0-9]+$/,
+        // Waste deposit QR codes
+        wasteDeposit: /^WASTE_DEPOSIT_\d+_[a-zA-Z0-9]+$/
+    };
+    
+    let isValidQr = false;
+    let coinsEarned = 0;
+    let message = '';
+    
     try {
-        // Try to parse as JSON (for our trash collection QR code)
+        // Try to parse as JSON (for structured trash collection QR codes)
         const qrData = JSON.parse(data);
+        console.log('Parsed QR data:', qrData);
         
-        if (qrData.type === 'trash_collection_confirmation') {
-            // Handle trash collection confirmation
+        if (qrData.type === 'trash_collection_confirmation' && qrData.binId && qrData.location) {
+            console.log('✅ Valid trash collection QR code - processing...');
+            // Handle structured trash collection confirmation
             handleTrashCollectionConfirmation(qrData);
-            return;
+            return; // Exit function after successful processing
+        } else {
+            console.log('❌ JSON QR code but invalid format');
+            // JSON but not a valid trash collection confirmation
+            // message = `❌ Invalid QR Code\n\nThis QR code is not recognized by the Smart Waste Management System.\n\nQR Code: ${JSON.stringify(qrData, null, 2)}\n\nPlease scan a valid waste management QR code to earn coins.`;
+            message = ''; // No message for invalid QR codes
         }
     } catch (e) {
-        // Not JSON, handle as plain text
+        console.log('Not JSON, checking pattern matching...');
+        
+        // Check for valid QR code patterns
+        if (validPatterns.userQr.test(data)) {
+            isValidQr = true;
+            coinsEarned = 30;
+            message = `✅ Valid User QR Code Scanned!\n\n🪙 +${coinsEarned} Coins Earned!\n\nQR Code: ${data}`;
+            
+        } else if (validPatterns.trashCollection.test(data)) {
+            isValidQr = true;
+            coinsEarned = 50;
+            message = `✅ Trash Collection QR Code Scanned!\n\n🪙 +${coinsEarned} Coins Earned!\n\nQR Code: ${data}`;
+            
+        } else if (validPatterns.binQr.test(data)) {
+            isValidQr = true;
+            coinsEarned = 25;
+            message = `✅ Smart Bin QR Code Scanned!\n\n🪙 +${coinsEarned} Coins Earned!\n\nQR Code: ${data}`;
+            
+        } else if (validPatterns.wasteDeposit.test(data)) {
+            isValidQr = true;
+            coinsEarned = 40;
+            message = `✅ Waste Deposit QR Code Scanned!\n\n🪙 +${coinsEarned} Coins Earned!\n\nQR Code: ${data}`;
+            
+        } else {
+            // Invalid QR code - no coins awarded
+            // message = `❌ Invalid QR Code\n\nThis QR code is not recognized by the Smart Waste Management System.\n\nQR Code: ${data}\n\nPlease scan a valid waste management QR code to earn coins.`;
+            message = ''; // No message for invalid QR codes
+        }
     }
     
-    // Example processing - you can customize this based on your waste management needs
-    if (data.startsWith('http')) {
-        // If it's a URL, you might want to open it or process it
-        alert(`QR Code contains a URL: ${data}`);
-    } else if (data.includes('bin') || data.includes('waste')) {
-        // If it contains waste-related keywords
-        alert(`Waste bin QR code detected: ${data}`);
-    } else {
-        // Generic QR code - award coins for any scan
-        const coinsEarned = 25; // Award 25 coins for generic scans
+    // Show single message and award coins if valid
+    if (isValidQr) {
         awardCoinsForScanning(coinsEarned);
-        alert(`QR Code scanned successfully: ${data}\n\n🪙 +${coinsEarned} Coins Earned!`);
+    }
+    
+    // Show the message only if there's a message to show
+    if (message) {
+        alert(message);
     }
 }
 
 // Handle trash collection confirmation
 function handleTrashCollectionConfirmation(qrData) {
-    console.log('Trash collection confirmation received:', qrData);
+    console.log('🎯 handleTrashCollectionConfirmation called with:', qrData);
     
-    // Award coins for scanning QR code
+    // Validate required fields
+    if (!qrData.binId || !qrData.location || !qrData.action) {
+        console.log('❌ Missing required fields in trash collection QR');
+        alert(`❌ Invalid Trash Collection QR Code\n\nMissing required information. Please scan a valid trash collection QR code.`);
+        return;
+    }
+    
+    console.log('✅ All required fields present, awarding coins...');
+    
+    // Award coins for scanning valid QR code
     const coinsEarned = 50; // Award 50 coins for each scan
     awardCoinsForScanning(coinsEarned);
     
     // Show confirmation message
-    const confirmationMessage = `
-        ✅ Trash Collection Confirmed!
-        
-        Bin ID: ${qrData.binId}
-        Location: ${qrData.location}
-        Action: ${qrData.action}
-        System: ${qrData.system}
-        
-        🪙 +${coinsEarned} Coins Earned!
-        
-        Collection has been successfully recorded.
-    `;
+    const confirmationMessage = `✅ Trash Collection Confirmed!\n\nBin ID: ${qrData.binId}\nLocation: ${qrData.location}\nAction: ${qrData.action}\nSystem: ${qrData.system || 'Smart Waste Management'}\n\n🪙 +${coinsEarned} Coins Earned!\n\nCollection has been successfully recorded.`;
     
     alert(confirmationMessage);
     
@@ -917,6 +964,13 @@ function updateHeaderCoinBalance() {
                 headerCoinBalance.textContent = summaryCoinsElement.textContent;
             }
         });
+    } else {
+        // If no user data, sync from current summary display
+        const headerCoinBalance = document.getElementById('headerCoinBalance');
+        const summaryCoinsElement = document.getElementById('summaryCoins');
+        if (headerCoinBalance && summaryCoinsElement) {
+            headerCoinBalance.textContent = summaryCoinsElement.textContent;
+        }
     }
 }
 
@@ -965,7 +1019,13 @@ function filterRewards(category) {
 // Redeem reward function
 async function redeemReward(rewardId, rewardName, cost) {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const currentBalance = parseInt(document.getElementById('userCoinBalance').textContent.replace(/,/g, ''));
+    if (!userData.id) {
+        alert('Please log in to redeem rewards.');
+        return;
+    }
+    
+    // Get current balance from the main dashboard (summaryCoins)
+    const currentBalance = parseInt(document.getElementById('summaryCoins').textContent.replace(/,/g, '') || 0);
     
     // Check if user has enough coins
     if (currentBalance < cost) {
@@ -997,13 +1057,17 @@ async function redeemReward(rewardId, rewardName, cost) {
         if (response.ok) {
             const data = await response.json();
             
-            // Update coin balance
-            const newBalance = currentBalance - cost;
-            document.getElementById('userCoinBalance').textContent = newBalance.toLocaleString();
+            // Update coin balance in all locations
+            const newBalance = data.newBalance || (currentBalance - cost);
             document.getElementById('summaryCoins').textContent = newBalance.toLocaleString();
+            document.getElementById('headerCoinBalance').textContent = newBalance.toLocaleString();
             
-            // Show success message
-            alert(`🎉 Congratulations! You have successfully redeemed "${rewardName}"!\n\nYour new coin balance: ${newBalance.toLocaleString()} coins\n\nYour reward will be processed and delivered to your registered email address.`);
+            // Show success message with email confirmation
+            const emailMessage = data.emailSent ? 
+                `\n\n📧 A confirmation email has been sent to ${data.emailAddress}` : 
+                '\n\n📧 Email confirmation will be sent shortly';
+            
+            alert(`🎉 Congratulations! You have successfully redeemed "${rewardName}"!\n\nYour new coin balance: ${newBalance.toLocaleString()} coins${emailMessage}\n\nYour reward will be processed and delivered to your registered email address.`);
             
             // Disable the redeem button for this reward
             const redeemBtn = event.target;
@@ -1021,8 +1085,8 @@ async function redeemReward(rewardId, rewardName, cost) {
         
         // Fallback: Update balance locally (for demo purposes)
         const newBalance = currentBalance - cost;
-        document.getElementById('userCoinBalance').textContent = newBalance.toLocaleString();
         document.getElementById('summaryCoins').textContent = newBalance.toLocaleString();
+        document.getElementById('headerCoinBalance').textContent = newBalance.toLocaleString();
         
         alert(`🎉 Demo Mode: You have successfully redeemed "${rewardName}"!\n\nYour new coin balance: ${newBalance.toLocaleString()} coins\n\nNote: This is a demo. In a real system, your reward would be processed.`);
         
@@ -1050,6 +1114,10 @@ function awardCoinsForScanning(amount = 50) {
     if (rewardsBalance) {
         rewardsBalance.textContent = newBalance.toLocaleString();
     }
+    
+    // Persist to backend so coins are recorded in the database
+    // Reuse the same endpoint used elsewhere for coin updates
+    updateUserCoinBalance(userData.id, amount);
     
     // Show notification
     showCoinNotification(amount, newBalance);

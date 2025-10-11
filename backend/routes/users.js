@@ -1,5 +1,6 @@
 const express = require('express');
 const { pool } = require('../config/database');
+const { sendRewardConfirmationEmail } = require('../services/emailService');
 
 const router = express.Router();
 
@@ -292,52 +293,51 @@ router.post('/:id/redeem', async (req, res) => {
         [cost, id]
       );
       
-      // Record redemption in transactions table. Build INSERT based on existing columns
-      const [columnsRows] = await connection.execute(
-        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'transactions'`
+      // Record redemption transaction (no waste_type/weight columns)
+      await connection.execute(
+        `INSERT INTO transactions (user_id, bin_id, coins_earned, transaction_date)
+         VALUES (?, ?, ?, NOW())`,
+        [id, null, -cost]
       );
-      const existingColumns = new Set(columnsRows.map(r => r.COLUMN_NAME));
-
-      const insertColumns = ['user_id', 'coins_earned'];
-      const insertValues = [id, -cost];
-      const placeholders = ['?', '?'];
-
-      if (existingColumns.has('bin_id')) {
-        insertColumns.push('bin_id');
-        insertValues.push(null);
-        placeholders.push('?');
-      }
-      if (existingColumns.has('waste_type')) {
-        insertColumns.push('waste_type');
-        insertValues.push('redeem');
-        placeholders.push('?');
-      }
-      if (existingColumns.has('weight')) {
-        insertColumns.push('weight');
-        insertValues.push(null);
-        placeholders.push('?');
-      }
-      if (existingColumns.has('transaction_date')) {
-        insertColumns.push('transaction_date');
-        // Use NOW() inline, so no placeholder needed here
-      }
-
-      const insertSql = `INSERT INTO transactions (${insertColumns.join(', ')}) VALUES (${placeholders.join(', ')}${existingColumns.has('transaction_date') ? ', NOW()' : ''})`;
-      await connection.execute(insertSql, insertValues);
       
       await connection.commit();
       
-      // Get updated balance
+      // Get updated balance and user info for email
       const [updatedUsers] = await pool.execute(
-        'SELECT coin_balance FROM users WHERE id = ?',
+        'SELECT coin_balance, first_name, last_name, email FROM users WHERE id = ?',
         [id]
       );
+      
+      const user = updatedUsers[0];
+      const newBalance = user.coin_balance;
+      
+      // Send confirmation email
+      try {
+        const emailResult = await sendRewardConfirmationEmail(
+          user.email,
+          `${user.first_name} ${user.last_name}`,
+          rewardName,
+          cost,
+          newBalance
+        );
+        
+        if (emailResult.success) {
+          console.log(`✅ Reward confirmation email sent to ${user.email}`);
+        } else {
+          console.log(`⚠️ Failed to send email to ${user.email}: ${emailResult.error}`);
+        }
+      } catch (emailError) {
+        console.error('Email sending error:', emailError);
+        // Don't fail the redemption if email fails
+      }
       
       res.json({
         message: 'Reward redeemed successfully',
         rewardName,
         cost,
-        newBalance: updatedUsers[0].coin_balance
+        newBalance,
+        emailSent: true,
+        emailAddress: user.email
       });
       
     } catch (error) {
@@ -348,8 +348,10 @@ router.post('/:id/redeem', async (req, res) => {
     }
     
   } catch (error) {
+    // Log full error and surface message in dev for easier debugging
     console.error('Redeem reward error:', error);
-    res.status(500).json({ error: 'Failed to redeem reward' });
+    const message = process.env.NODE_ENV === 'development' ? (error.message || 'Failed to redeem reward') : 'Failed to redeem reward';
+    res.status(500).json({ error: message });
   }
 });
 
