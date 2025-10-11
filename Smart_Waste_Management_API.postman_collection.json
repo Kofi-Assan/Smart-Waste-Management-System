@@ -1,0 +1,376 @@
+{
+  "info": {
+    "name": "Smart Waste Management API",
+    "description": "API collection for testing the Smart Waste Management System endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Bins",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/bins",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Bin by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/bins/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins", "1"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create New Bin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"Not Full\",\n  \"level\": 0\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bins",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Bin Status/Level",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"Half Full\",\n  \"level\": 50\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bins/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins", "1"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Arduino Sensor Data Update",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"binId\": 1,\n  \"level\": 75,\n  \"distance\": 8.3,\n  \"deviceId\": \"ESP8266_BIN_001\",\n  \"location\": \"Academic City University College\",\n  \"timestamp\": 1696789123456\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bins/update",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins", "update"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Arduino Sensor Data - Full Bin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"binId\": 1,\n  \"level\": 95,\n  \"distance\": 1.7,\n  \"deviceId\": \"ESP8266_BIN_001\",\n  \"location\": \"Academic City University College\",\n  \"timestamp\": 1696789123456\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bins/update",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins", "update"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Arduino Sensor Data - Empty Bin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"binId\": 1,\n  \"level\": 5,\n  \"distance\": 31.7,\n  \"deviceId\": \"ESP8266_BIN_001\",\n  \"location\": \"Academic City University College\",\n  \"timestamp\": 1696789123456\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bins/update",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins", "update"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Bins by Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/bins/status/Full",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins", "status", "Full"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User Registration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "register"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Coins",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_JWT_TOKEN_HERE"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/1/coins",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "1", "coins"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Coin System - Bin Level 0% to 20%",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"binId\": 1,\n  \"level\": 20,\n  \"distance\": 15.0,\n  \"deviceId\": \"ESP8266_BIN_001\",\n  \"location\": \"Academic City University College\",\n  \"timestamp\": \"2024-01-01T10:00:00Z\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bins/update",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins", "update"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Coin System - Bin Level 20% to 50%",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"binId\": 1,\n  \"level\": 50,\n  \"distance\": 10.0,\n  \"deviceId\": \"ESP8266_BIN_001\",\n  \"location\": \"Academic City University College\",\n  \"timestamp\": \"2024-01-01T10:05:00Z\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bins/update",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins", "update"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Coin System - Bin Level 50% to 80%",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"binId\": 1,\n  \"level\": 80,\n  \"distance\": 5.0,\n  \"deviceId\": \"ESP8266_BIN_001\",\n  \"location\": \"Academic City University College\",\n  \"timestamp\": \"2024-01-01T10:10:00Z\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bins/update",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins", "update"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Coin System - Specific User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"binId\": 1,\n  \"level\": 90,\n  \"distance\": 3.0,\n  \"deviceId\": \"ESP8266_BIN_001\",\n  \"location\": \"Academic City University College\",\n  \"userId\": 1,\n  \"timestamp\": \"2024-01-01T10:15:00Z\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bins/update",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins", "update"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Check User Coin Balance",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "1"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Transactions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/1/transactions",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "users", "1", "transactions"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Reset Bin Level to 0%",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"binId\": 1,\n  \"level\": 0,\n  \"distance\": 20.0,\n  \"deviceId\": \"ESP8266_BIN_001\",\n  \"location\": \"Academic City University College\",\n  \"timestamp\": \"2024-01-01T10:20:00Z\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/bins/update",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "bins", "update"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

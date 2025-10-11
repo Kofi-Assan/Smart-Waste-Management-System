@@ -233,8 +233,8 @@ input:-webkit-autofill + label {
     max-width: none;
 }
 
-/* Blur background when bins panel is open */
-#dashboard.blur-active > :not(#binsContent) {
+/* Blur background when panels are open */
+#dashboard.blur-active > :not(#binsContent):not(#rewardsContent) {
     filter: blur(6px);
     transition: filter 200ms ease;
     pointer-events: none;
@@ -505,6 +505,32 @@ input:-webkit-autofill + label {
     margin: 0;
     font-size: 1.8rem;
     font-weight: 700;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.coin-balance-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.coin-balance-header .coin-icon {
+    font-size: 1.2rem;
+}
+
+.coin-balance-header .coin-amount {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: white;
 }
 
 .btn-close {
@@ -969,4 +995,311 @@ input:-webkit-autofill + label {
 
 #scanAgainBtn:hover {
     background: #059669;
+}
+
+/* Bin Status Indicators */
+.status-full {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.status-warning {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.status-normal {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.status-empty {
+    color: #6c757d;
+    font-weight: bold;
+}
+
+.status-unknown {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.error {
+    color: #dc3545;
+    font-style: italic;
+}
+
+/* Rewards Grid - Same as bins grid */
+.rewards-grid {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    max-height: calc(85vh - 80px);
+    overflow-y: auto;
+    background: #f0fdf4;
+    position: relative;
+    z-index: 10;
+}
+
+/* Ensure rewards content panel is not blurred */
+#rewardsContent {
+    filter: none !important;
+    backdrop-filter: none !important;
+}
+
+#rewardsContent * {
+    filter: none !important;
+    backdrop-filter: none !important;
+}
+
+/* Reward Card - Same as bin card */
+.reward-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 2px solid #e5e7eb;
+    position: relative;
+}
+
+.reward-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+
+.reward-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: #10b981;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.reward-icon {
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.reward-info h3 {
+    color: #064e3b;
+    font-size: 1.3rem;
+    margin: 0 0 8px 0;
+}
+
+.reward-type {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.reward-description {
+    color: #374151;
+    font-size: 1rem;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.reward-price {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    padding: 8px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.coin-cost {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #10b981;
+    margin-right: 4px;
+}
+
+.coin-symbol {
+    font-size: 1.1rem;
+}
+
+.redeem-btn {
+    width: 100%;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.redeem-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.redeem-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.redeem-btn:disabled:hover {
+    background: #9ca3af;
+    transform: none;
+    box-shadow: none;
+}
+
+.rewards-filters {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 25px;
+    color: #6b7280;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.filter-btn:hover {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.filter-btn.active {
+    background: #10b981;
+    border-color: #10b981;
+    color: white;
+}
+
+/* Scrollbar styling for rewards grid - same as bins */
+.rewards-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.rewards-grid::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 10px;
+}
+
+.rewards-grid::-webkit-scrollbar-thumb {
+    background: #10b981;
+    border-radius: 10px;
+}
+
+.rewards-grid::-webkit-scrollbar-thumb:hover {
+    background: #059669;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .rewards-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 15px;
+    }
+}
+
+/* Reward Card Categories */
+.reward-card[data-category="gift-cards"] {
+    border-left: 4px solid #3b82f6;
+}
+
+.reward-card[data-category="electronics"] {
+    border-left: 4px solid #8b5cf6;
+}
+
+.reward-card[data-category="entertainment"] {
+    border-left: 4px solid #f59e0b;
+}
+
+.reward-card[data-category="discounts"] {
+    border-left: 4px solid #ef4444;
+}
+
+.reward-card[data-category="vouchers"] {
+    border-left: 4px solid #06b6d4;
+}
+
+/* Coin Award Notifications */
+.coin-award-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    z-index: 10000;
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    max-width: 300px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.coin-award-notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.notification-icon {
+    font-size: 2rem;
+    animation: coinSpin 2s ease-in-out infinite;
+}
+
+.notification-text {
+    flex: 1;
+}
+
+.notification-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.notification-details {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    line-height: 1.3;
+}
+
+@keyframes coinSpin {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
 }

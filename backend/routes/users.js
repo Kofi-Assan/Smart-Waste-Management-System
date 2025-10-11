@@ -59,23 +59,64 @@ router.put('/:id/coins', async (req, res) => {
   }
 });
 
+// Add coins to user balance (POST method for frontend compatibility)
+router.post('/:id/coins', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { coins, action = 'add' } = req.body;
+    
+    if (typeof coins !== 'number') {
+      return res.status(400).json({ error: 'Coins must be a number' });
+    }
+    
+    let coinChange = coins;
+    if (action === 'subtract') {
+      coinChange = -coins;
+    }
+    
+    const [result] = await pool.execute(
+      'UPDATE users SET coin_balance = coin_balance + ? WHERE id = ?',
+      [coinChange, id]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Get updated balance
+    const [users] = await pool.execute(
+      'SELECT coin_balance FROM users WHERE id = ?',
+      [id]
+    );
+    
+    res.json({ 
+      message: 'Coin balance updated successfully',
+      newBalance: users[0].coin_balance,
+      coinsAdded: coinChange
+    });
+  } catch (error) {
+    console.error('Add coins error:', error);
+    res.status(500).json({ error: 'Failed to update coin balance' });
+  }
+});
+
 // Get user transactions
 router.get('/:id/transactions', async (req, res) => {
   try {
     const { id } = req.params;
     const { limit = 50, offset = 0 } = req.query;
     
+    // Use a schema-tolerant query (omit optional/non-universal columns)
     const [transactions] = await pool.execute(`
       SELECT 
         t.id,
         t.coins_earned,
-        t.waste_type,
-        t.weight,
         t.transaction_date,
+        t.bin_id,
         b.location as bin_location,
         b.bin_type
       FROM transactions t
-      JOIN bins b ON t.bin_id = b.id
+      LEFT JOIN bins b ON t.bin_id = b.id
       WHERE t.user_id = ?
       ORDER BY t.transaction_date DESC
       LIMIT ? OFFSET ?
@@ -201,6 +242,114 @@ router.get('/leaderboard/top', async (req, res) => {
   } catch (error) {
     console.error('Get leaderboard error:', error);
     res.status(500).json({ error: 'Failed to fetch leaderboard' });
+  }
+});
+
+// Redeem reward
+router.post('/:id/redeem', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rewardId, rewardName, cost } = req.body;
+    
+    if (!rewardId || !rewardName || !cost) {
+      return res.status(400).json({ error: 'Reward ID, name, and cost are required' });
+    }
+    
+    if (typeof cost !== 'number' || cost <= 0) {
+      return res.status(400).json({ error: 'Cost must be a positive number' });
+    }
+    
+    // Start transaction
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+    
+    try {
+      // Check user's current balance
+      const [users] = await connection.execute(
+        'SELECT coin_balance FROM users WHERE id = ?',
+        [id]
+      );
+      
+      if (users.length === 0) {
+        await connection.rollback();
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const currentBalance = users[0].coin_balance;
+      
+      if (currentBalance < cost) {
+        await connection.rollback();
+        return res.status(400).json({ 
+          error: 'Insufficient coins',
+          currentBalance,
+          requiredCost: cost
+        });
+      }
+      
+      // Deduct coins from user balance
+      await connection.execute(
+        'UPDATE users SET coin_balance = coin_balance - ? WHERE id = ?',
+        [cost, id]
+      );
+      
+      // Record redemption in transactions table. Build INSERT based on existing columns
+      const [columnsRows] = await connection.execute(
+        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'transactions'`
+      );
+      const existingColumns = new Set(columnsRows.map(r => r.COLUMN_NAME));
+
+      const insertColumns = ['user_id', 'coins_earned'];
+      const insertValues = [id, -cost];
+      const placeholders = ['?', '?'];
+
+      if (existingColumns.has('bin_id')) {
+        insertColumns.push('bin_id');
+        insertValues.push(null);
+        placeholders.push('?');
+      }
+      if (existingColumns.has('waste_type')) {
+        insertColumns.push('waste_type');
+        insertValues.push('redeem');
+        placeholders.push('?');
+      }
+      if (existingColumns.has('weight')) {
+        insertColumns.push('weight');
+        insertValues.push(null);
+        placeholders.push('?');
+      }
+      if (existingColumns.has('transaction_date')) {
+        insertColumns.push('transaction_date');
+        // Use NOW() inline, so no placeholder needed here
+      }
+
+      const insertSql = `INSERT INTO transactions (${insertColumns.join(', ')}) VALUES (${placeholders.join(', ')}${existingColumns.has('transaction_date') ? ', NOW()' : ''})`;
+      await connection.execute(insertSql, insertValues);
+      
+      await connection.commit();
+      
+      // Get updated balance
+      const [updatedUsers] = await pool.execute(
+        'SELECT coin_balance FROM users WHERE id = ?',
+        [id]
+      );
+      
+      res.json({
+        message: 'Reward redeemed successfully',
+        rewardName,
+        cost,
+        newBalance: updatedUsers[0].coin_balance
+      });
+      
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+    
+  } catch (error) {
+    console.error('Redeem reward error:', error);
+    res.status(500).json({ error: 'Failed to redeem reward' });
   }
 });
 
